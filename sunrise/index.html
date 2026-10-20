@@ -10,7 +10,7 @@
 <title>走进《印象·日出》</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Noto+Serif+SC:wght@400;600&family=ZCOOL+XiaoWei&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Noto+Serif+SC:wght@400;600&family=ZCOOL+XiaoWei&display=swap" media="print" onload="this.media='all'">
 <style>
 /* Layout: 整个页面就是这幅画。全屏、不滚动；场景之间用笔触重新画出画面，文字像颜料一样浮在雾里 */
 :root{
@@ -180,11 +180,31 @@ function clearWords() { wordsToken++; wordsEl.classList.add('out'); setTimeout((
 function hint(t) { hintEl.textContent = t || ''; hintEl.classList.toggle('on', !!t); nextBtn.classList.toggle('on', !!t); }
 
 /* ---------- 载入 ---------- */
-const load = src => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
+// 手机上用小一号的原图，省流量也省内存
+const LOW = Math.max(innerWidth, innerHeight) * DPR < 1700;
+const NW = LOW ? 1400 : 2000, NH = Math.round(NW * 1552 / 2000);
+const FILES = [[LOW ? 'sunrise-m.jpg' : 'sunrise.jpg', LOW ? 290 : 590], ['plate.jpg', 300], ['sun.png', 14], ['refl.png', 245], ['boat1.png', 107], ['boat2.png', 52], ['boat3.png', 20]];
+const TOTAL = FILES.reduce((a, f) => a + f[1], 0); let doneKB = 0;
+// 先把标题和进度显示出来，不让人对着黑屏等
+wordsEl.className = 'c nobg'; wordsEl.innerHTML = '<p class="line title">印象<b>·</b>日出</p><p class="line fr">Impression, soleil levant</p><p class="line small" id="loadMsg">正在铺颜料……</p>';
+const loadMsg = () => document.getElementById('loadMsg');
+function load(src, kb, tries = 2) {
+  return new Promise((res, rej) => {
+    const i = new Image(); let t = setTimeout(() => { i.src = ''; fail(); }, 40000);
+    const fail = () => { clearTimeout(t); if (tries > 1) load(src + (src.indexOf('?') < 0 ? '?r=1' : ''), kb, tries - 1).then(res, rej); else rej(src); };
+    i.onload = () => { clearTimeout(t); doneKB += kb; const m = loadMsg(); if (m) m.textContent = `正在铺颜料…… ${Math.round(doneKB / TOTAL * 100)}%`; res(i); };
+    i.onerror = fail; i.src = src;
+  });
+}
 const SRC = {};
-Promise.all(['sunrise.jpg', 'plate.jpg', 'sun.png', 'refl.png', 'boat1.png', 'boat2.png', 'boat3.png'].map(load).concat([load('meis.jpg').catch(() => null)])).then(start).catch(() => {
-  wordsEl.className = 'c'; wordsEl.innerHTML = '<p class="line small">图片没有加载出来，请刷新页面再试。</p>';
-});
+function boot() {
+  Promise.all(FILES.map(f => load(f[0], f[1])).concat([new Promise(r => { const i = new Image(); i.onload = () => r(i); i.onerror = () => r(null); i.src = 'meis.jpg'; })]))
+    .then(imgs => { try { start(imgs); } catch (err) { showErr(err && err.message); } })
+    .catch(() => { const m = loadMsg(); if (m) m.innerHTML = '网络有点慢，图片没有加载完。<button type="button" id="retry" style="font:inherit;color:inherit;background:none;border:1px solid currentColor;border-radius:14px;padding:4px 12px;margin-left:6px;cursor:pointer">重试</button>'; const b = document.getElementById('retry'); if (b) { b.addEventListener('pointerdown', e => e.stopPropagation()); b.onclick = () => { m.textContent = '正在铺颜料……'; doneKB = 0; boot(); }; } });
+}
+function showErr(msg) { wordsEl.className = 'c nobg'; wordsEl.innerHTML = '<p class="line small">页面出了点问题，请截图发给作者：<br>' + String(msg || '未知错误').replace(/</g, '&lt;') + '</p>'; }
+addEventListener('error', e => { if (!SRC.orig) showErr(e.message); });
+boot();
 
 function sampler(im, W, H, orient) {
   const w = Math.min(1000, W), h = Math.round(w * H / W), c = mk(w, h), x = c.getContext('2d', { willReadFrequently: true });
@@ -197,8 +217,8 @@ function sampler(im, W, H, orient) {
 }
 
 function start([orig, plate, sunI, reflI, b1, b2, b3, meis]) {
-  const noRefl = mk(2000, 1552); { const x = noRefl.getContext('2d'); x.drawImage(plate, 0, 0, 2000, 1552); const [sx, sy, sw, sh] = CUTS.sun; x.drawImage(sunI, sx, sy, sw, sh); [b1, b2, b3].forEach((b, i) => { const [bx, by, bw, bh] = CUTS['boat' + (i + 1)]; x.drawImage(b, bx, by, bw, bh); }); }
-  const grayC = mk(2000, 1552); { const x = grayC.getContext('2d', { willReadFrequently: true }); x.drawImage(orig, 0, 0); const id = x.getImageData(0, 0, 2000, 1552), d = id.data; for (let p = 0; p < d.length; p += 4) { const v = 0.299 * d[p] + 0.587 * d[p + 1] + 0.114 * d[p + 2]; d[p] = d[p + 1] = d[p + 2] = v; } x.putImageData(id, 0, 0); }
+  const noRefl = mk(NW, NH); { const x = noRefl.getContext('2d'); x.scale(NW / 2000, NW / 2000); x.drawImage(plate, 0, 0, 2000, 1552); const [sx, sy, sw, sh] = CUTS.sun; x.drawImage(sunI, sx, sy, sw, sh); [b1, b2, b3].forEach((b, i) => { const [bx, by, bw, bh] = CUTS['boat' + (i + 1)]; x.drawImage(b, bx, by, bw, bh); }); }
+  const grayC = mk(NW, NH); { const x = grayC.getContext('2d', { willReadFrequently: true }); x.drawImage(orig, 0, 0, NW, NH); const id = x.getImageData(0, 0, NW, NH), d = id.data; for (let p = 0; p < d.length; p += 4) { const v = 0.299 * d[p] + 0.587 * d[p + 1] + 0.114 * d[p + 2]; d[p] = d[p + 1] = d[p + 2] = v; } x.putImageData(id, 0, 0); }
   SRC.orig = sampler(orig, 2000, 1552, ORIENT.monet);
   SRC.noRefl = sampler(noRefl, 2000, 1552, ORIENT.monet);
   SRC.gray = { im: grayC, W: 2000, H: 1552 };

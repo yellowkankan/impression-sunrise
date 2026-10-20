@@ -9,7 +9,7 @@
 <meta property="og:image" content="gallery/sunrise-thumb.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Noto+Serif+SC:wght@400;600&family=ZCOOL+XiaoWei&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Noto+Serif+SC:wght@400;600&family=ZCOOL+XiaoWei&display=swap" media="print" onload="this.media='all'">
 <style>
 /* Layout: 一面横向的展墙。画按参观顺序挂成一排，走到哪幅，哪幅被灯照亮，下面出现展签 */
 :root{
@@ -287,6 +287,10 @@ function enter(el, w) {
   setTimeout(() => { location.href = w.href; }, reduce ? 50 : 1150);
 }
 addEventListener('pageshow', e => { if (e.persisted) { $('#veil').style.opacity = 0; document.querySelectorAll('body > img').forEach(n => n.remove()); } });
+
+/* ---------- 提前把《印象·日出》的图下载好，点进去就不用再等 ---------- */
+setTimeout(() => { const low = Math.max(innerWidth, innerHeight) * Math.min(1.5, devicePixelRatio || 1) < 1700;
+  [low ? 'sunrise-m.jpg' : 'sunrise.jpg', 'plate.jpg', 'sun.png', 'refl.png', 'boat1.png', 'boat2.png', 'boat3.png'].forEach(f => { const i = new Image(); i.src = 'sunrise/' + f; }); }, 1500);
 
 /* ---------- 启动 ---------- */
 sizeFrames();
