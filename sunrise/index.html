@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="走进莫奈《印象·日出》：拨开晨雾，在画里漫游，和光赛跑画出倒影。">
+<meta property="og:title" content="走进《印象·日出》">
+<meta property="og:image" content="sunrise.jpg">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+<title>走进《印象·日出》</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Noto+Serif+SC:wght@400;600&family=ZCOOL+XiaoWei&display=swap">
+<style>
+/* Layout: 整个页面就是这幅画。全屏、不滚动；场景之间用笔触重新画出画面，文字像颜料一样浮在雾里 */
+:root{
+  --deep:#111917;
+  --fog:#efeae0;
+  --mist:#c3ccc5;
+  --sun:#e0694a;
+  --peach:#f0b89c;
+  --shade:rgba(12,18,16,.9);
+  --f-display:"ZCOOL XiaoWei","Noto Serif SC","Songti SC","STSong",serif;
+  --f-body:"Noto Serif SC","Songti SC","STSong","SimSun",serif;
+  --f-latin:"IM Fell English","Iowan Old Style",Georgia,serif;
+  --gut-l:max(16px,env(safe-area-inset-left,0px));
+  --gut-r:max(16px,env(safe-area-inset-right,0px));
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--deep);color:var(--fog);font-family:var(--f-body);overflow:hidden;margin:0;
+  padding-left:var(--gut-l);padding-right:var(--gut-r)}
+#stage{position:fixed;inset:0;overflow:hidden;background:var(--deep);touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+#endBtns{position:absolute;z-index:6;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 9vh);transform:translateX(-50%);display:flex;gap:12px;flex-wrap:wrap;justify-content:center;opacity:0;pointer-events:none;transition:opacity 1s}
+#endBtns.on{opacity:1;pointer-events:auto}
+#endBtns button{-webkit-touch-callout:none;font:inherit;font-size:15px;letter-spacing:.08em;color:var(--fog);background:rgba(12,18,16,.55);border:1px solid rgba(239,234,224,.35);padding:11px 20px;border-radius:18px 26px 16px 24px / 22px 16px 26px 18px;cursor:pointer;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+#endBtns button:hover{background:rgba(224,105,74,.35)}
+#endBtns button:focus-visible{outline:1px solid var(--peach);outline-offset:3px}
+#stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#stage.pointer{cursor:pointer}
+#stage.brush{cursor:crosshair}
+
+/* 文字：没有卡片，直接浮在画上 */
+#words{position:absolute;z-index:3;display:grid;gap:14px;max-width:min(560px,calc(100vw - 32px));pointer-events:none}
+#words::before{content:"";position:absolute;inset:-90px -140px;z-index:-1;background:radial-gradient(closest-side,rgba(12,18,16,.5),rgba(12,18,16,.18) 60%,rgba(12,18,16,0));opacity:0;transition:opacity .8s}
+#words.has::before{opacity:1}
+#words.nobg::before{display:none}
+#words.bl{left:calc(var(--gut-l) + 4vw);bottom:calc(env(safe-area-inset-bottom,0px) + 12vh)}
+#words.tl{left:calc(var(--gut-l) + 4vw);top:calc(env(safe-area-inset-top,0px) + 12vh)}
+#words.br{right:calc(var(--gut-r) + 4vw);bottom:calc(env(safe-area-inset-bottom,0px) + 12vh);text-align:right}
+#words.c{left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;max-width:min(760px,calc(100vw - 32px))}
+.line{margin:0;font-family:var(--f-display);font-size:clamp(21px,2.3vw,30px);line-height:1.55;letter-spacing:.04em;
+  text-shadow:0 0 14px rgba(10,16,14,.85),0 0 32px rgba(10,16,14,.6);animation:paintIn 1.5s cubic-bezier(.2,.7,.2,1) both}
+.line em{font-style:normal;color:var(--peach)}
+.line.small{font-family:var(--f-body);font-size:clamp(14px,1.25vw,16px);line-height:1.8;color:var(--mist);letter-spacing:0}
+.line.title{font-size:clamp(58px,10vw,124px);letter-spacing:.1em;line-height:1.1}
+.line.title b{color:var(--sun);font-weight:400}
+.line.fr{font-family:var(--f-latin);font-style:italic;font-size:clamp(20px,2.4vw,30px);color:var(--mist);letter-spacing:.02em}
+.line.dark{color:#1d2725;text-shadow:0 0 18px rgba(240,240,232,.9)}
+.line.fr.dark,.line.small.dark{color:#3d4a46}
+#words.out .line{animation:paintOut .7s ease-in both}
+@keyframes paintIn{0%{opacity:0;filter:blur(12px);clip-path:inset(-60px 100% -60px -80px);transform:translateX(-6px)}60%{opacity:1}100%{opacity:1;filter:blur(0);clip-path:inset(-60px -80px -60px -80px);transform:none}}
+@keyframes paintOut{to{opacity:0;filter:blur(10px);transform:translateY(-6px)}}
+
+#hint.dark{color:#1d2725;text-shadow:0 0 12px rgba(240,240,232,.9)}
+#hint{position:absolute;z-index:3;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 4.5vh);transform:translateX(-50%);
+  font-size:15px;letter-spacing:.12em;color:var(--fog);opacity:0;transition:opacity .9s;pointer-events:none;white-space:nowrap;
+  text-shadow:0 0 12px rgba(10,16,14,.95)}
+#hint.on{opacity:.9;animation:breathe 3s ease-in-out infinite}
+@keyframes breathe{50%{opacity:.5}}
+#tag{position:absolute;z-index:4;pointer-events:none;font-family:var(--f-display);font-size:18px;color:var(--fog);
+  text-shadow:0 0 10px rgba(10,16,14,.95);opacity:0;transition:opacity .25s;transform:translate(16px,-28px);white-space:nowrap}
+#tag.on{opacity:1}
+#clock{position:absolute;z-index:3;right:calc(var(--gut-r) + 4vw);top:calc(env(safe-area-inset-top,0px) + 8vh);text-align:right;
+  font-family:var(--f-latin);font-size:clamp(40px,5vw,64px);line-height:1;opacity:0;transition:opacity .6s;pointer-events:none;
+  text-shadow:0 0 18px rgba(10,16,14,.8);font-variant-numeric:tabular-nums}
+#clock small{display:block;font-family:var(--f-body);font-size:14px;color:var(--mist);margin-top:8px;letter-spacing:.1em}
+#clock.on{opacity:1}
+.corner{position:absolute;z-index:5;font-size:13px;letter-spacing:.14em;color:var(--mist);text-shadow:0 0 10px rgba(10,16,14,.95)}
+#brand{left:calc(var(--gut-l) + 2px);top:calc(env(safe-area-inset-top,0px) + 6px);padding:8px 10px;font-family:var(--f-display);font-size:16px;letter-spacing:.2em;color:var(--mist);text-decoration:none}
+#brand:hover{color:var(--fog)}
+#brand:focus-visible{outline:1px solid var(--peach);outline-offset:2px}
+#brand b{color:var(--sun);font-weight:400}
+#soundBtn,#nextBtn{background:none;border:0;padding:8px 10px;font:inherit;font-size:13px;letter-spacing:.14em;color:var(--mist);cursor:pointer}
+#soundBtn{right:calc(var(--gut-r) + 4px);top:calc(env(safe-area-inset-top,0px) + 6px)}
+#nextBtn{right:calc(var(--gut-r) + 4px);bottom:calc(env(safe-area-inset-bottom,0px) + 8px);opacity:0;transition:opacity .6s;pointer-events:none}
+#nextBtn.on{opacity:.75;pointer-events:auto}
+#soundBtn:hover,#nextBtn:hover{color:var(--fog)}
+#soundBtn:focus-visible,#nextBtn:focus-visible{outline:1px solid var(--peach);outline-offset:2px}
+#dots{left:50%;top:calc(env(safe-area-inset-top,0px) + 20px);transform:translateX(-50%);display:flex;gap:8px;pointer-events:none}
+#dots i{width:9px;height:7px;border-radius:60% 40% 55% 45%;background:rgba(239,234,224,.25);transition:background .5s}
+#dots i.on{background:var(--peach)}
+@media (max-width:700px){
+  #words.bl,#words.br,#words.tl{left:var(--gut-l);right:var(--gut-r);bottom:calc(env(safe-area-inset-bottom,0px) + 11vh);top:auto;text-align:left;max-width:none;padding-inline:6px}
+  .line{font-size:18px;line-height:1.6}
+  .line.small{font-size:13.5px}
+  #words{gap:10px}
+  #words::before{inset:-60px -40px}
+  #clock{top:calc(env(safe-area-inset-top,0px) + 48px)}
+  #endBtns{bottom:calc(env(safe-area-inset-bottom,0px) + 7vh)}
+  #hint{white-space:normal;text-align:center;width:calc(100vw - 48px)}
+}
+@media (prefers-reduced-motion:reduce){.line,#words.out .line{animation-duration:.01s}#hint.on{animation:none}}
+</style>
+
+</head>
+<body>
+<div id="stage" role="application" aria-label="《印象·日出》互动漫游">
+  <canvas id="paint"></canvas>
+  <canvas id="fx"></canvas>
+  <div id="words" class="c" aria-live="polite"></div>
+  <div id="hint"></div>
+  <div id="tag"></div>
+  <div id="clock"></div>
+  <a id="brand" class="corner" href="../">← 展厅</a>
+  <div id="dots" class="corner" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+  <button id="soundBtn" class="corner" type="button">声音 关</button>
+  <button id="nextBtn" class="corner" type="button">继续 →</button>
+  <div id="endBtns"><button id="againHub" type="button">再逛一逛港口</button><button id="againAll" type="button">从头看一遍</button><button id="toHall" type="button">回到展厅</button></div>
+</div>
+
+<script>
+const ORIENT = {"monet":{"w":125,"h":97,"step":16,"d":"dnrtx-q9D89+91rk--+BA7+2++2tzfh-IM53735-z++GEC981-J---DDGHGBBC987154sf/B/+A/8-7AF-88w//9/EEOE-u-+--8/9/BCCW-9+D//8/9-a-AAB8k--z0z05-s46-zsuyy--5/A7x-+782whw4BB658814-7z8+B9/-i---D-AGA/BEEB779+vu-/AA/-+9++9AE896559FFFGE78EICFD/OLBCC/+8+CABB-33--770rqIy4133B71w-x10319B168+0wz9z54322353339989J56429+9861-7/--/+8A9--47+B--+A66+/GB9+/CF+/+64042j9AA9C-EA/8FCHCAE//9-B/CB89HED6-qt5w1y65871xwz1w0ys70vq-1xy1243182523757799548967698A5877539++/+94699-jy++57/69A-+/8787458223GD+FAAABA/5/7A/BBBF-4+++87/B7----dS9015943yuy1xst032ytqy3y24353w463-444486840v+43485+94AEHA+B82599-K5321--GA/336777+788899+85EA87DA/3636969C+BCAA+896AD/976---ZWuz3621zutyxuttz34yxz0zx02xw38A60z24331y695z-234744989DB46866656596442+3A/8667887A+89++9/--D/96B61x-0785+A+BCELHCBBCAB/DD/9-ccyfk-sytmzywvsq011uy430vyywz7766314544vt28541468774z76vz0556765788876984+/9975546097773/95788753346828+7A+8/58DD+AB+8/CJ/69tp--emrtwwx1wsxss020oz67574yw499/988443--69Cy22444799z455556567995B676667789/989950284+A884677575557777+47++9+99+/w-1277+B+45---B2qm-0xxwz02zy0zyuz135683368B9797869-957421zyy16762367888783-76856566778AA+697766899767769976667796897789+999BA6-z1-356vyt-MX-w1--xuvv00z1zzwvuwu250uw1751x4076v--5398200z19/87478879+52116/9866656677313-456458678+839/887/B78+988999+86/E//+8055551xrx-Wx-76wttvxyuwyzxxtttw12zxy18-x16910qp-439xm9879GB+7698487455678766677796152-2L-2356/78/++BE67986667877+/+++99B+--A+88777630x-bp-351rvuzxyzxvwv3-x111107749CC+Brssz12+-ll-+85--7566438788978888+65356761w17/+///+A89+/9-F+646++878+9/98988AD/--+9//+76/-xtkg-x-/3x01ywy0wvvrr--wuvxw-749FUC9svw236+34pz6/CAA65896467789988778674588/99+/A8H887A/858s-E//B++77798798+999+8DEJ78888364-3nlnJ--1z11-ttwyvxuux2wx0002401+CS13wxr14+-1-mx1zd3++658657+97879658876788895496ICNA8777656--C99A++648A+6899B///CB/976788450489-elevyxrqr-xwwrtwyv3yy1341xu533-z--pfz58x--ly4-e-/++868779+---31t7556898895-HBACG88659578CJ/+7BA643599999/A//ADEA+B9+/56q-7-q-cjnt0im4suxuwytvtkpsmy57wuwzy6-y-hhav-A5-bgz-lfi55+943535-f---5--8/989+9A/AFI-7C7584+-796/8798+46449+/999/+/97684A75668BDDtqfgnpxwqsyywvvvwxxskquox+-rswv15nejp9m55321ihn1vg-68CA6566626017+A8AB++9A//AELHE98+8+/57/879+8866895678/9+8+67654488787768---jljpm-lrwxwuvyuw-2rjgpsy6uwx1780mZZ-1r7603+---6ve-0578687684168A+A8-A88799+9/9B/7+/DC+77C776+AI99A867259+99/99841+B9+84454-U---d6--pqx-xuxyoy2yifaqxtj-v-551rmcXLxs436/AA+98xjz59166775655B7+//DJ-67789999+A96/ADA98B/777/+8B//58868788+67+8+2396A----8/F6-he--ssrr-uyvvx31wkhdnwuq--wz55wmwl-tu016ABB/967ht56124544z--75B9579-388898897x9+++776898755BA99688577/89+86AA9AC752-RMB9-567-kbxssstt-ouzz1400skoostu66wux9xpok--wwz39BBp89+h983247745/+--7-/66w26899//98737883758669877B+7676848//87+A/DA//CA7A-KA9783546--prp--otm-531zy0vooi-985zutu9pswomitw3z2/--N84--43-7674164119/-67898++8//A/998774+6944B++A-799F+74--/A8/BL-A+9+75/E878878+49ffilrw-wy79/51wsrusviz894nmrpjj377pk4/-pss--PA0b-99-657356778B--799977A/7AA+9/72667A+96++8GB99+8---799+9+AF76/9+8+6/K-8AB//3-icjp2x325/57103-xtw2pmlt0-qqqsu37-r-5-pm-22z-/8qz8+-448889+CA737++9978B+8+9/-96z-89+6/+A/+TB+J//-T--EA9++B/++A95777AD-4/B570hicjp-76wx5x3s-82612ulil11wlnqy01168uuieh---59---12129999+9+A++3476BBA+A67E98+AI+78+B-9C+38-58H+/---8/DCCC/B/A5H9677/+-EDHBE-lkhmmo-A3368B+53394+xsp814sipzz031AEqvqjiV-F----vt3-s879BB//9+A32/+A//A9--C743DKB99E---E/-HG---3z-B98+/DHA9DC/v---788+-889--5--lii-zy--1-D/zvvz1+-rp-264-11vv56K-vt-ifbP--QO/fh57g-88//D-H/849A+/C+9864468/+ACAKB+Q-ED-KG-+o39KTA7-EEGGB/9+433--49C8885--58hgnhrxvvv0w-Jmqu--8-RMMC/7-ruuw-75rosqfcSB-cab-ef34-EB8ABFP9F-+-795D-576505/76FJG-FDJC+D----9uJFCL-75O-9-38++789768/E98/560w3miqm21y51217+z70j-51HDMGFF-qrrs-88821--eY/-fY-ghf9+LIE7AAFL697986007625417--26IPSC+CDCCC---4----CB--/CA3539/B6/CD-/6FA9868--0pgw3106DOT--858zm12x-z64t-DjcntOP7546EAihslad-nff+/IP/9757982w49A316300----ffhSaZ69QLHBCCCCDAD/-B+--/+855B+AJ9/A---tG-9+/BCcnum--xx-LRS-q-552x2zzr169---YYi---3665EFG--n-ouAOb//j---m336-6563-4043-CDF-7SYW0pl2--ICni--/E-+-g+90-78889--/-AA+6+33-b+A961wr-ikpww-PVYk-lz68v-+9-GE---5r---sp454-CGNFFJ---/heBAj5C6hEB-345-zwz1CAJC7-n-ULF1vuDK-HG-dZ-C9rB+p3-0k5++9-jmI-FB+8BDCGc--57B---borsukVYX-/i1--/ywACCGed+EV--irk17CGBFU-GGGFFFZg8-h-A-hDBt03--mi2z-95+D--F59D801D---D----ca--+9B5-d9+/+eii-aV-+BBEE/-8-2B-D--T+5tstUgkZffCG-nsr--cCo--API-fhOCCB-s-efk1DGJHUc-3hi8-aS-043v-gZD99--68D-e--FB114rlTGEKH-ddf-9/FAgfIC//gje-h--BFNJB6x576BEA6snwposjYelCXgP8toz38lb42-j76-cfg-CFE57DfejjfRPRUN-n--7-Yaiz22t45X-7/JI447Zd--HI-FCpkVRJKj-cX---8ABZf++7+-ig-ghy-OKEEF/225AC---ktooxvu667jhe-ji-B9-e67JL+8-ded-CBDA/-ffhhebZXYd-hdk-Vafiz65x/CD-11C-20uij--JR---YYWUP1m-YUdY-7/B-a/4-QOe--iryzNHEGIR35+E-----fpqrI35--dfg-fgA+3kf--BFCDviffo+/D/BAYeihdZaZad-cdff-Zb-AACEBF/72--744-hfeJHLNFKXbXWP8-ZaTbZVA-B4-A/2-----lw02-FDFWc/BAFE-hADa-zxq9B-Cce72feA+8hd-9+CA7-ged-+Aj+98-gggbXaaad--dfd-bZ-A/ACFA8+9-C/DAmcYNFGHJMKVdaXVM-ZNMdg-ACA/-BA+AAACImx49+HBDba/DCHFJKF8--66z++-5hdD0ii-+Cfg-JRIA45jgD/A/-98-ceij-dYZVYm-ced-gkp/7/CECBBBF+CFBkbQDD/DGCA-ebXUXfc-Mbh-CCBA-A+8BCCBN-298+77-ecDCABE-Bchiwt-t--/5li--if-9-ig-MSHD-ohfA6A-ii/Ocegegc-QQY-3facbnqr/+/B+ADGHC+ABB2hi9/ACEEC/lfWXafckSTge-ACAADC--EBCC99A+/+0-a-B88--vz--hpo---B7----mjb-++-o++HK8AAUf-EKUhg1-decbdY---aI/9bdh402BA++9ABEG79+AB-fSHCABJGMB9-RWYdakPOcde68A-BA8888/ACCA+++-GY-477--1-G+--5---A79J--qec-+B97/B/m-VDP-FD--ggy-+/99BBC7/BIBBRH-44/CEFA8CDEF7/CC7rbXDBFXfecRBaXUTaZ-CHYX-5B/+BC+75+ABCBC/9---Ue5+5-/9HMTg--+/B//ADRQkl-86-z857no--DFBC999e-G/8+ADEHFGDCG++D-WA9BCADA+BADDBBCHBnffdgbadecQPWPLJJio/-gUL-DADEF/8+BDCAD/---J-J+7-34w8FDMhol98FC/AADF4-C9B9919B-q-t-8/A+AEe-E+76/FFDBCCCGBABE-y8A/898++/B++B/CE-ZbVWV-PbaGUVRQLHS-E-fWJGKCHE+-8A+CECDDEIF--D//EB9B+DCDDI931BA/ACA+B6++J-B--/-67+/-7++7B--JEC-BCAAACBD-DA//B42BA9+++--/99A8IDDfaYXGBBG/-CMXdVTTPCC-FJHIFD+6-HFDEFC3--LN-HA779/+FE6--CGCGFC/BBCABAgn8CCBD++--+GHU-C7+BE9+A/DBADFGBAB-799B/459/HJFIUi-2787SCCdaaW-ECGFEHNSeQOI/9//AB+B9A+7/EFCBA/6-MPIKI-///D7y7+tnt/6C++BCDd-99eeEBBH-6AC/AE--YH7AAFC48CJA/-8//9CT--8CF-A8-AA6-bgm6689/AB-A--QDEGFAEIJIO-R--EDFBJB6BDGHBACA/8+9CK-GUs8+9-414-ian9BJLuDC-dg-uffDCDVe-CD+/-I-UQKWUO-lp-4B+7++B-D--g8CD-C-Z-DFEikAA9A/ADII96+97/DGCBSHGDA/-9ABDABBBDGG658CFAB-BE--/C-89/A--B-abd----3AB-eikgffBECN97p-/--/jY--ZZUhhhnn-AFDDG--ppfgF--ORaQGF9XQG//DOCFHH7+C658ADEBCBFA+9+A+9AAA/CDCC/7+8A/FEBAD89/A897Ta-IJVcd---x9ADmge-Pfgo-CB97k-s-9/dgfdahk-eihg-B-/B--2-jh-LbXHM-C5664QMFC/9-FDA45IA/EDBB/+/FF+//E99BG8A/DA/CHE+++CBCEHA+/+AB79IK/A1-hr--3B8A-epDIdhy2B98+C/veUAcegd-hY-nifgl/dgAA--9mhYLcaEW--8502GNLGB+aKG--7DBBBA7B-95A9ACE-5DL-/BBFCBAC/-/BCCDCHHD83AB79BC+uzvi6BB8D+Ebfl--ddD6//+ABB379-demknkaghkhfiA-p777P-0DIFbd54kg24u2IC--+9/DE-A-A/BBC9DMX-EABBGKE/F-DA/CDA/A+2++A9/-A/-----F/DDCKaifrn-7----fi2CcgXKBMY+DEC/-------fgj-rhe-G---MH-ACCiXbd25g-62HDKJ--8DEEHC-HEBDED/+-J-CCBB+D8/D-B+CABAC/++/A/EDC////DFEB386AECJeh-8C6--tkj1whhkA/TUDCBDLTH---TQgi+CEfdc---JHELS9-tgdeEF-587/GSUB77-IAA46BCDEFBD--Dy/D8/8C9DD7+9AACBBAB/BACDA/BB/AACD3x62541-eg-680qyto-AA-g-EIFFA+AABDFOHLIZhhBA-fd-+x-KTIMbdlkZOLEEBDG--kYURBD-D+AA8ABGHEB8GHF+BDA77/+B-499+/FH/BDE8ADC/+BCBB+A/924w341ig-zs3L-ui--/B-o8FSFB/++8+//8CJDgjmpC-ecCAys--B-caZEDG-B-h-P--sxpg-TOFEDDDBBFIHD9CHCADC/+7/C6C3764AOT+9+E79CEC+FGDA-A+5A---8-hd--w4GED-g-9CJ6/DLFEA+/9CFF-PPD-gheEFPUbC-l-DB-c--CDMa---89+B94--8EEGEC18ABBBFHFBECBDC//A6-36k77/AGF/+9D-FB++7ACO87-G-68CE9-Xhr-1+-76-g-/+-/CC/DEA69+BDB5--D-vM--XURSGFz-EHacef-MWg--/8+CGC9-GEDDEDC/9BDCBFDB//B-89+ADG-639G-H+AA+ADFKDB5-698IFA/5/A976--gjp37+-99-hyC2-h--x9871u---/77---k-nUTbOJFI--ceZa6-jYY-7998AFDD-79DMFDECAABEBAACCC9/--ABBCF-77BF---C/ACBEAGD6-F-DIIA8A9A/C+--jhq29BDDDBs-TB4BD/r670pq----76Yb-D+8-Un/FFON-hebg9CBHSD7+A/2--A----7BBFCADDBACDB++BC-CBCBCBE99----/979AAA/A+85A4y++CCD-ECCA-njgq08+BGFEpia+9A-a-650rttt-1k-VOCBCB/C8//BJQfl-ff-GADZVL+BA9/BAC----/AABGIEBBCDB68IH-C/CDECCB---B--54976319A/oqy479GEBBA8++xolg--A85247-gpv7W-hz7+8v10-M7i-QTGC++9Av8+DBxlmfm-9bgveb07+szA+//A7EACAABJBECCCEGG9D--JFEHE-R--7---44278836/C--27+//S-/--988x-cf-C/65yyuojkl--s8+---tEBE87--INHE+9//DC+CM-n--157-f-q2150---ECBH-9A--ADVEDC/BDFL-DHFB/E-F+-1z47F-8--9A/1+DDg-AAAA-N--+IC+/ZfcgoA8h-j0riioqbe--BF-w-GBB5Afde-RPF-FDHE6DJI-k--2ggg-C--6ldWIGDDF4+---A97/DBCDABC/AB/89/B-98456AD99B/8C/-FHD--CECA8C-556C--Ymiip+/-0t-meimqldr-9AAA-CEFi-ge-5-YTQHNME9LJGD-VTdij-N-h-xqgdO-KG-z----7+B/DCABCDBA7/+9CBDJB97DDBBABEG8AB-DCEHCCC8EB9054x-34-ngg-5----cbYkhhlnoe--ZNECHP--ee-0GXRSNXJCBAPJEmg-aeg--3-Apsif--8CB5--ij89AIHDECCCEA/ACFHEDCBA/D+-HC9/+998-FCDBABCDG--3-2-----knh46rtF---Dpffhon-WUeo6CIL--96ABJKHNOOHHKcZeqxwIQZd-CHM-lhcdv--A88L-bXND7+CDKFB7+B8+/BDA98++//5w--CA778+-KFB+7BIBB+-7-eEA7pppnZA9oc-vzz-feffff-dYjqzxDJGA-6/BGHJKJGHHG+-jki+BGY--HGF1ulghmec+BBE--VMH-+BEHDG---BA/BD+8+6795344uBA8+A/5F97ABBB726E-+A+9544-sl87ws93-3B--jhiejbZgbrl-U-8-h-GE+EIMNHDBADH--9//CFIKHsv7B--xR/+BBIQ-Y-837878DHj56CA+AEC65t125693-9-89/9+D-8BDAA9--G-9+6864qkn-+8uq-------fgp-4gc3ujS40c-y-PJGC/DQNJGCBDD/B-5+CGHIMkm7CGD/C/9/Aaf--i4679988+-++99A//BE-tA886D--+888+++D/-/--y8B8+--48--xkijo02yvt-iu--db-o-3-H-wmfD-fel178-MABDDKOG/AB+BBC/FD//+li6BBBA/A/E-kj--z69/JH+/++A+A8BAABJ-CF/888--6+A878798A8/z17++------1tkjiorxy07-c--n-Z----+-IC--DD-ed-6ADS-/+BDLHDT/8/DFDEBA9oo-ACABC+9BGWn4+9866+EC+C/+/8DD46/EDBCB+9+8F-18A93433-++++/98AK-07347nkkLpmt-+B-a-7lsY--------A89-n-c-ADDHAA/ABC/C/C/3LJEC9+8-THEB++DA69D-i8+CC89A/7699+++FIC-pFAA-9BDDAzu4+869A8CVHJGBA99-T-z519Hiklomlm-BF5-/--56c-----bAA//59F--AEE//AEFDCBB+/XfcB/9/95A+EC965DEE//Ay68+EDCC/9+/6++9+-98+B/--A8CF-tz4786A/9/H8AED-v+L-A5u08-llmoe-prjQ5AA-9B/-AC++---AB+6A31FB-DBDDJA+AAFC7895688/+//AFQN4y9EIC3y79/99CACAGC/A/+85-8/BF83166+BIC/+7A78978A+///A0-G-z2040jlli--7----v4988ADURG/++-4+7479wx--268-/C///BQG59E7-/BA++9/8-D/59B-B899+87AECBACECA+--4FA/A--325789FD899HD/+6+ADCAA+4zJNl-B9wnrniho-ecYpr-99++/dbE/+5c-/7w665o-w+9+/+/A+BCEC77A7ECBC8888-GJA3/A--9A///9A/+CLEBBA+9w5997+D-977876+AA+A+-F88+AGGFE245HKRSH+xv+-ffumh--ik-98+90-c/----ei---77-9+ACFAAA+67BB+/AA/ECB+889AbX5AFCC---/DA/9//DBBDBBB+5AL9268/CGHFDA9/BBAC7-E/88/BCHU959+A-b---+5-SYE---c-h-3----8+97AG/+-U-q68HC//A++ADB73+889B+--/+6++9A-60/FCBA58+/9/99ALC//CDC968Q-278A/DDFBCAACE-u78A++BCB/Al-+C+1-RTlm6BE+P-gj---/-97--ACBC+CB/v2C978CEFB//8OHJJJGGHA9/+9+/64/++/A81RFDD++69+9+++/HDA/CCEG+7C9///CBDFGDFHCB7116528ABGFCDFFDDAwu-S-x3C-jgcbb----8+A/AADBA5/9-mA+++-GGHN9+SRGGIJJKL-CC+//A++9++559BKGGtq---/9++/99FDBA9AA/8FE/7+CDC/CECGC++88EC9D9+GECDGE99Ey12130z/Gpk--bd----HDDL-/B9A6---/AA8v-CD87BCB7BEIJKH//CDAAA8+6/BFFEF/AB7BBB+DABFF79AAAABAA+5-EA/9+BB+9A+DBAB96+/BCHF9A/DIL0z--2A-z5x673mda-h---BRBBCB+/+---AC/8BC----0+AA/AC/8BGEACDBEDBCCGDGGDGE7AC7A//BACKCCGF/ABEAC///4-NCADFECDA8/AABCAABAC-KEAAB-M751-2-8AC+98-gkfW--7+/A+/BCEFDCBAABE8AK--P-67+-FCA96577BCEDCCABAEFFAFGGECB++9/CB//+BC-8/CC/D79/EOIDDH-A+/BAAABBABGBAA6ECEHFCEF--3-w8B21-PUa0GW-QE999/BBA+GF+798/BBBC5CGKA7--4735437+BBACEEDA/AAADFCEECBA96-7A////A69/99/BBBBDCBEG76BBCCC-8BB/+D8--CFDBDCCD--zxr--Gp0--Thn-f/7DA/++ADEABGGD+8+ACACEC-k9A75+135848BCBA/AGOA///+E749+/AAABA779/BD+99/E/+A8DB+xv7-EFECBC91A9A9+87/B-2/B///+322zx+G-o0/AGXkkk-p-FGIB/CBEDABE/+HC+/IS1-C86-GDA+8CD8+-/AAADC999867/+A/A99/CEDACBBD+98DDB+B5+A93CGDGEA9+/+CB9+9+99/87z5+69++63502//-rA/71-ki-z-SIIKHADGIFCBB9ADBBD-t1DB+B6-FDA9BDCA7CBCAEEA/99769+/ACAAA///AFD////CDAHBF82C-EEFGJCECBDDH97++99/+/-55969D/8ESk-A+ppCAC2qeI-q-SNHHHFECDEECBBB7+BA-67+/+DH9GEG-AEF+9ABCFGA9//964+++BABBA+///AAADEDDCEECGA6AAFDE+DCDB/B/AA8+/ELREFIICCBDC/D-no/B4pt84/-lY9/+6---FECF/FD9/BBC4FTT59/+AA+46DBELICC/+BDBCCA9BD8x5ABA/ACC++99CC66/DF/8/BCD9//+B/+BDDBA/A/BDJ-DA+7BDHJDDDHM-A+uq67--x156NeJ+9-nkgcb/MQMI-ZXI9HJIJOD/F-iPE2IG6ADICA/BCBA//AAAC/5CAHI8/ACBA98989/BBB/899GFH/CBA99D8/GDC/BBA/+99/9A/CHCFFGL-9769CB-Owt8+fcUEE-iecb-LOSdZbZWSHOQUPPNBPfeaNLPOl-KDHGFEEABBACA/A-HC--+/B+DEDA726/ACBB+++9DFGBFBA9767ADBAAE/9+++973FHBC++/CBHF78/DEDD0sFFhk/+//-WUU-JQH-8BEOMDKMNESSEFdcHMPfO-WV-EGLIB8-GDGC8A5EABEBBB+2AEB9W9BDCB/A89ABDBBCBB+3979A/+AA+9+8/9786ABA--xA/AF6DHGCDD+9CBXfHC9+/GIMDEB+99/AEB+CDA9CGGDWQCBH-A-HNSFDIIIHFJHD+80BBDBBEDB/5+DGIJ-ha//AEGB//CBCB/9+8A/7//+AB03-8+AB+7-SD8AD++9C57IFAE86AB9-cMBA//HCI4BE8++/ABCAA+29+++9+F9C-a--HNWNCEDBEDDH-9+--9CFFDGGC-/DOIFIc-6+BFBB9/BEFA+6CMGE/9A897--HA/+ABA8CF/H/8/AB/-+BB/AABA-acM8+C/LFB5/BGEA+CB+AA8+/+A/+/BA-hc--X-bGBFDBAABFD+BC/8DHDAGGB-/+-GE-t3+BBC+AA8ABCAFGENGCC6667z10-----DB7/-8EEA+/A98+A--/A+7--gB67DABEB1DDIGFDEAAAAAB/8+A/+8/9pa8AGAAA/+BC/+8+F/8B+5/M++/DAA+5+GDBpyBJ9/ABAAB7---KGDLA7666962------884999--34A8797--h-H0GCe-","W":2000,"H":1552}};
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const DPR = Math.min(1.5, window.devicePixelRatio || 1);
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const rgba = (c, a) => `rgba(${clamp(c[0], 0, 255) | 0},${clamp(c[1], 0, 255) | 0},${clamp(c[2], 0, 255) | 0},${a})`;
+function rng(seed) { return () => { seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
+const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+const CUTS = { sun: [1177, 440, 80, 81], refl: [1125, 803, 178, 675], boat1: [844, 1008, 216, 259], boat2: [481, 901, 212, 117], boat3: [277, 844, 141, 68] };
+
+const stage = $('#stage'), paint = $('#paint'), fx = $('#fx'), P = paint.getContext('2d'), F = fx.getContext('2d');
+const wordsEl = $('#words'), hintEl = $('#hint'), tagEl = $('#tag'), clockEl = $('#clock'), nextBtn = $('#nextBtn');
+let SW = 0, SH = 0; // 画布像素尺寸
+function size() { const w = Math.round(innerWidth * DPR), h = Math.round(innerHeight * DPR); const ch = w !== SW || h !== SH; SW = paint.width = fx.width = w; SH = paint.height = fx.height = h; return ch; }
+size();
+
+/* ---------- 声音 ---------- */
+let audio = null; const soundBtn = $('#soundBtn');
+function soundOn() {
+  if (audio) return; const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+  const ac = new AC(), len = ac.sampleRate * 4, buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
+  let last = 0; for (let i = 0; i < len; i++) { last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02; d[i] = last * 3.2; }
+  const s = ac.createBufferSource(); s.buffer = buf; s.loop = true;
+  const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 520;
+  const g = ac.createGain(); g.gain.value = 0.3;
+  const lfo = ac.createOscillator(), lg = ac.createGain(); lfo.frequency.value = 0.09; lg.gain.value = 0.2; lfo.connect(lg); lg.connect(g.gain);
+  s.connect(lp); lp.connect(g); g.connect(ac.destination); s.start(); lfo.start();
+  const horn = () => { if (!audio) return; const t = ac.currentTime, hg = ac.createGain(); hg.gain.setValueAtTime(0, t); hg.gain.linearRampToValueAtTime(0.045, t + 0.8); hg.gain.linearRampToValueAtTime(0, t + 3.2); hg.connect(ac.destination);
+    [98, 147].forEach(f => { const o = ac.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; const fl = ac.createBiquadFilter(); fl.type = 'lowpass'; fl.frequency.value = 400; o.connect(fl); fl.connect(hg); o.start(t); o.stop(t + 3.4); });
+    audio.timer = setTimeout(horn, 22000 + Math.random() * 15000); };
+  audio = { ctx: ac, timer: setTimeout(horn, 5000) }; soundBtn.textContent = '声音 开';
+}
+function soundOff() { if (!audio) return; clearTimeout(audio.timer); audio.ctx.close(); audio = null; soundBtn.textContent = '声音 关'; }
+soundBtn.addEventListener('click', e => { e.stopPropagation(); audio ? soundOff() : soundOn(); });
+soundBtn.addEventListener('pointerdown', e => e.stopPropagation());
+
+/* ---------- 文字 ---------- */
+let wordsToken = 0;
+async function say(lines, pos = 'bl', gap = 1500) {
+  const tok = ++wordsToken;
+  if (wordsEl.children.length) { wordsEl.classList.add('out'); await sleep(reduce ? 0 : 650); if (tok !== wordsToken) return false; }
+  wordsEl.classList.remove('out'); wordsEl.innerHTML = ''; wordsEl.className = pos;
+  if (lines.length) wordsEl.classList.add('has');
+  for (let i = 0; i < lines.length; i++) {
+    if (tok !== wordsToken) return false;
+    const l = lines[i], p = document.createElement('p'); p.className = 'line ' + (l.cls || ''); p.innerHTML = l.t || l; wordsEl.appendChild(p);
+    if (i < lines.length - 1) await sleep(reduce ? 200 : (l.wait || gap));
+  }
+  await sleep(reduce ? 100 : 900);
+  return tok === wordsToken;
+}
+function clearWords() { wordsToken++; wordsEl.classList.add('out'); setTimeout(() => { if (wordsEl.classList.contains('out')) { wordsEl.innerHTML = ''; wordsEl.classList.remove('has'); } }, 700); }
+function hint(t) { hintEl.textContent = t || ''; hintEl.classList.toggle('on', !!t); nextBtn.classList.toggle('on', !!t); }
+
+/* ---------- 载入 ---------- */
+const load = src => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
+const SRC = {};
+Promise.all(['sunrise.jpg', 'plate.jpg', 'sun.png', 'refl.png', 'boat1.png', 'boat2.png', 'boat3.png'].map(load).concat([load('meis.jpg').catch(() => null)])).then(start).catch(() => {
+  wordsEl.className = 'c'; wordsEl.innerHTML = '<p class="line small">图片没有加载出来，请刷新页面再试。</p>';
+});
+
+function sampler(im, W, H, orient) {
+  const w = Math.min(1000, W), h = Math.round(w * H / W), c = mk(w, h), x = c.getContext('2d', { willReadFrequently: true });
+  x.drawImage(im, 0, 0, w, h); const d = x.getImageData(0, 0, w, h).data, k = w / W;
+  return {
+    W, H, im,
+    col(ix, iy) { const px = clamp(Math.round(ix * k), 0, w - 1), py = clamp(Math.round(iy * k), 0, h - 1), p = (py * w + px) * 4; return [d[p], d[p + 1], d[p + 2]]; },
+    ang(ix, iy) { if (!orient) return null; const gx = clamp(Math.floor(ix / orient.step), 0, orient.w - 1), gy = clamp(Math.floor(iy / orient.step), 0, orient.h - 1), ch = orient.d[gy * orient.w + gx]; return ch === '-' ? null : B64.indexOf(ch) / 64 * Math.PI; }
+  };
+}
+
+function start([orig, plate, sunI, reflI, b1, b2, b3, meis]) {
+  const noRefl = mk(2000, 1552); { const x = noRefl.getContext('2d'); x.drawImage(plate, 0, 0, 2000, 1552); const [sx, sy, sw, sh] = CUTS.sun; x.drawImage(sunI, sx, sy, sw, sh); [b1, b2, b3].forEach((b, i) => { const [bx, by, bw, bh] = CUTS['boat' + (i + 1)]; x.drawImage(b, bx, by, bw, bh); }); }
+  const grayC = mk(2000, 1552); { const x = grayC.getContext('2d', { willReadFrequently: true }); x.drawImage(orig, 0, 0); const id = x.getImageData(0, 0, 2000, 1552), d = id.data; for (let p = 0; p < d.length; p += 4) { const v = 0.299 * d[p] + 0.587 * d[p + 1] + 0.114 * d[p + 2]; d[p] = d[p + 1] = d[p + 2] = v; } x.putImageData(id, 0, 0); }
+  SRC.orig = sampler(orig, 2000, 1552, ORIENT.monet);
+  SRC.noRefl = sampler(noRefl, 2000, 1552, ORIENT.monet);
+  SRC.gray = { im: grayC, W: 2000, H: 1552 };
+  if (meis) SRC.meis = sampler(meis, meis.naturalWidth, meis.naturalHeight, ORIENT.meis || null);
+  SRC.reflI = reflI;
+  requestAnimationFrame(frame);
+  run();
+}
+
+/* ---------- 镜头 ---------- */
+let view = { src: 'orig', cx: 0.5, cy: 0.5, z: 1 };
+function xf(v) {
+  const s = SRC[v.src], cover = Math.max(SW / s.W, SH / s.H), contain = Math.min(SW / s.W, SH / s.H);
+  const portrait = SW < SH * 0.95, base = v.src === 'meis' ? contain * (portrait ? 0.96 : 0.84) : (portrait ? contain : Math.min(cover, contain * 1.35)), k = base * v.z;
+  let X = v.cx * s.W, Y = v.cy * s.H; const hw = SW / 2 / k, hh = SH / 2 / k;
+  X = s.W * k > SW ? clamp(X, hw, s.W - hw) : s.W / 2; Y = s.H * k > SH ? clamp(Y, hh, s.H - hh) : s.H / 2;
+  // 竖屏时画面小于屏幕高度：把画往上放，下面留给文字
+  const oy = s.H * k < SH && portrait ? (SH - s.H * k) * 0.28 : SH / 2 - Y * k;
+  return { k, ox: SW / 2 - X * k, oy, s };
+}
+const toImg = (v, sx, sy) => { const t = xf(v); return [(sx - t.ox) / t.k, (sy - t.oy) / t.k]; };
+function drawView(ctx, v, im, alpha = 1) { const t = xf(v); ctx.globalAlpha = alpha; ctx.setTransform(t.k, 0, 0, t.k, t.ox, t.oy); ctx.drawImage(im || t.s.im, 0, 0, t.s.W, t.s.H); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; }
+
+/* ---------- 用笔触把画面画出来 ---------- */
+let painting = null;
+function paintTo(v, opts = {}) {
+  view = v; if (painting) painting.done();
+  return new Promise(resolve => {
+    const t = xf(v), s = t.s, r = rng((Math.random() * 1e9) | 0), m = Math.min(SW, SH) / DPR;
+    const strokes = [];
+    const passes = opts.quick ? [[clamp(m / 16, 22, 54), 1]] : [[clamp(m / 18, 20, 48), 1], [clamp(m / 36, 10, 24), 1]];
+    passes.forEach(([g, dens], pi) => {
+      const gp = g * DPR, list = [];
+      for (let y = -gp / 2; y < SH + gp; y += gp) for (let x = -gp / 2; x < SW + gp; x += gp) {
+        const sx = x + (r() - 0.5) * gp, sy = y + (r() - 0.5) * gp, ix = (sx - t.ox) / t.k, iy = (sy - t.oy) / t.k;
+        if (ix < 0 || iy < 0 || ix >= s.W || iy >= s.H) continue;
+        let a = s.ang(ix, iy); if (a == null) a = r() * Math.PI;
+        list.push({ x: sx, y: sy, a: a + (r() - 0.5) * 0.25, c: s.col(ix, iy), L: gp * (1.5 + r() * 1.1), w: gp * (pi ? 0.55 : 0.75), seed: (r() * 1e9) | 0 });
+      }
+      for (let i = list.length - 1; i > 0; i--) { const j = (r() * (i + 1)) | 0; [list[i], list[j]] = [list[j], list[i]]; }
+      strokes.push(list);
+    });
+    const total = strokes.reduce((a, l) => a + l.length, 0);
+    if (opts.from === 'black') { P.fillStyle = '#111917'; P.fillRect(0, 0, SW, SH); }
+    let pi = 0, i = 0, fade = 0, fin = false;
+    const frames = [reduce ? 1 : 26, reduce ? 1 : 42], fadeFrames = reduce ? 1 : 22;
+    const finish = () => { if (fin) return; fin = true; P.setTransform(1, 0, 0, 1, 0, 0); P.fillStyle = '#111917'; P.fillRect(0, 0, SW, SH); drawView(P, v); painting = null; resolve(); };
+    painting = { done: finish };
+    const step = () => {
+      if (fin) return;
+      if (pi < strokes.length) {
+        const list = strokes[pi], per = Math.ceil(list.length / frames[Math.min(pi, 1)]);
+        for (let n = 0; n < per && i < list.length; n++, i++) stroke(P, list[i]);
+        if (i >= list.length) { pi++; i = 0; }
+      } else {
+        fade++; P.setTransform(1, 0, 0, 1, 0, 0);
+        if (fade === 1) { P.globalAlpha = 1; }
+        drawView(P, v, null, 0.18 + fade / fadeFrames * 0.3);
+        if (fade >= fadeFrames) return finish();
+      }
+      requestAnimationFrame(step);
+    };
+    if (!total) return finish();
+    requestAnimationFrame(step);
+  });
+}
+function stroke(ctx, s) {
+  const r = rng(s.seed), n = 4, ca = Math.cos(s.a), sa = Math.sin(s.a), nx = -sa, ny = ca, hl = s.L / 2;
+  ctx.lineCap = 'round'; ctx.lineWidth = Math.max(1, s.w / n * 1.9);
+  for (let i = 0; i < n; i++) {
+    const o = (i / (n - 1) - 0.5) * s.w, st = -hl * (0.7 + r() * 0.3), en = hl * (0.7 + r() * 0.3), b = (r() - 0.5) * s.L * 0.12, j = (r() - 0.5) * 18;
+    ctx.strokeStyle = rgba([s.c[0] + j, s.c[1] + j * 0.9, s.c[2] + j * 0.8], (0.55 + r() * 0.4).toFixed(2));
+    ctx.beginPath(); ctx.moveTo(s.x + ca * st + nx * o, s.y + sa * st + ny * o);
+    ctx.quadraticCurveTo(s.x + ca * (st + en) / 2 + nx * (o + b), s.y + sa * (st + en) / 2 + ny * (o + b), s.x + ca * en + nx * o, s.y + sa * en + ny * o); ctx.stroke();
+  }
+}
+
+/* ---------- 雾、风、光 ---------- */
+const FW = 96, FH = 60, fogA = new Float32Array(FW * FH), fogC = mk(FW, FH), fogX = fogC.getContext('2d'), fogImg = fogX.createImageData(FW, FH);
+let fogTarget = 0.12, fogRegrow = 0.006, ptr = { x: -1, y: -1, px: -1, py: -1, inside: false };
+const noise = (x, y, t) => Math.sin(x * 0.11 + t * 0.00021) * Math.sin(y * 0.17 - t * 0.00017) * 0.5 + Math.sin((x + y) * 0.05 + t * 0.0003) * 0.5;
+function setFog(level, instant) { fogTarget = level; if (instant) fogA.fill(level); }
+function windAt(x, y, strength) {
+  const fx_ = x / SW * FW, fy_ = y / SH * FH, rad = Math.min(FW, FH) * 0.2;
+  for (let j = Math.max(0, fy_ - rad | 0); j < Math.min(FH, fy_ + rad + 1); j++) for (let i = Math.max(0, fx_ - rad | 0); i < Math.min(FW, fx_ + rad + 1); i++) {
+    const d = Math.hypot(i - fx_, (j - fy_) * 1.2) / rad; if (d < 1) fogA[j * FW + i] *= 1 - strength * (1 - d) * (1 - d);
+  }
+}
+const fogCleared = () => { let s = 0; for (let i = 0; i < fogA.length; i++) s += fogA[i] < 0.35 ? 1 : 0; return s / fogA.length; };
+
+let targets = [], hover = null, gray = 0, grayTarget = 0, light = 0, lightTarget = 0, shimmer = false;
+function frame(t) {
+  F.setTransform(1, 0, 0, 1, 0, 0); F.clearRect(0, 0, SW, SH);
+  gray += (grayTarget - gray) * 0.06; if (Math.abs(grayTarget - gray) < 0.004) gray = grayTarget;
+  light += (lightTarget - light) * 0.03;
+  if (shimmer && !reduce && !painting && view.src === 'orig') {
+    const tr = xf(view), im = SRC.reflI, [rx, ry] = CUTS.refl;
+    F.setTransform(tr.k, 0, 0, tr.k, tr.ox, tr.oy); F.globalAlpha = 0.9;
+    for (let y = 0; y < im.height; y += 6) { const h = Math.min(6, im.height - y), dx = Math.sin(t / 620 + y * 0.05) * 2.2; F.drawImage(im, 0, y, im.width, h, rx + dx, ry + y, im.width, h); }
+    F.globalAlpha = 1; F.setTransform(1, 0, 0, 1, 0, 0);
+  }
+  if (gray > 0.01) drawView(F, Object.assign({}, view, { src: 'gray' }), SRC.gray.im, gray);
+  if (light > 0.005) { const g = F.createRadialGradient(SW * 0.62, SH * 0.3, 0, SW * 0.62, SH * 0.3, Math.max(SW, SH)); g.addColorStop(0, `rgba(255,240,222,${0.55 * light})`); g.addColorStop(1, `rgba(255,238,218,${0.12 * light})`); F.fillStyle = g; F.fillRect(0, 0, SW, SH); }
+  // 目标：在画里微微发亮
+  if (!painting) targets.forEach(tg => {
+    const tr = xf(view), cx = tg.x * tr.k + tr.ox, cy = tg.y * tr.k + tr.oy, a = tg === hover ? 0.32 : (tg.seen ? 0.04 : 0.07 + 0.06 * Math.sin(t / 700 + tg.x));
+    F.save(); F.translate(cx, cy); F.scale(tg.rx * tr.k, tg.ry * tr.k);
+    const g = F.createRadialGradient(0, 0, 0, 0, 0, 1); g.addColorStop(0, `rgba(255,236,212,${a})`); g.addColorStop(0.7, `rgba(255,236,212,${a * 0.5})`); g.addColorStop(1, 'rgba(255,236,212,0)');
+    F.fillStyle = g; F.beginPath(); F.arc(0, 0, 1, 0, Math.PI * 2); F.fill(); F.restore();
+    if (coarse && !tg.seen) { F.font = `${14 * DPR}px "ZCOOL XiaoWei", "Noto Serif SC", serif`; F.textAlign = 'center'; F.fillStyle = 'rgba(12,18,16,.55)'; const tw = F.measureText(tg.name).width; const lcx = tg.lx ? tg.lx * tr.k + tr.ox : cx, lcy = tg.ly ? tg.ly * tr.k + tr.oy : cy; F.fillRect(lcx - tw / 2 - 8 * DPR, lcy - 11 * DPR, tw + 16 * DPR, 22 * DPR); F.fillStyle = 'rgba(255,240,224,.95)'; F.textBaseline = 'middle'; F.fillText(tg.name, lcx, lcy + DPR); }
+  });
+  // 雾
+  for (let i = 0; i < fogA.length; i++) fogA[i] += (fogTarget - fogA[i]) * fogRegrow;
+  const d = fogImg.data;
+  for (let j = 0, p = 0; j < FH; j++) for (let i = 0; i < FW; i++, p++) {
+    const n = reduce ? 0 : noise(i, j, t) * 0.12, a = clamp(fogA[p] + n * fogA[p], 0, 0.97);
+    d[p * 4] = 222; d[p * 4 + 1] = 228; d[p * 4 + 2] = 221; d[p * 4 + 3] = a * 255;
+  }
+  fogX.putImageData(fogImg, 0, 0); F.imageSmoothingEnabled = true; F.drawImage(fogC, 0, 0, SW, SH);
+  requestAnimationFrame(frame);
+}
+
+/* ---------- 指针 ---------- */
+let onTap = null, onHold = null, brush = null, lockUntil = 0;
+const coarse = matchMedia('(pointer: coarse)').matches;
+const local = e => { const r = stage.getBoundingClientRect(); return [(e.clientX - r.left) * DPR, (e.clientY - r.top) * DPR]; };
+function hitTarget(x, y) { if (painting) return null; for (const tg of targets) { const [ix, iy] = toImg(view, x, y); if (((ix - tg.x) / tg.rx) ** 2 + ((iy - tg.y) / tg.ry) ** 2 < 1) return tg; } return null; }
+stage.addEventListener('pointermove', e => {
+  const [x, y] = local(e);
+  if (ptr.px >= 0) { const sp = Math.hypot(x - ptr.px, y - ptr.py) / DPR; if (sp > 1) windAt(x, y, Math.min(0.5, sp / 60)); }
+  ptr.px = x; ptr.py = y;
+  if (brush) return brush.move(x, y);
+  hover = hitTarget(x, y); stage.classList.toggle('pointer', !!hover || !!onTap);
+  if (hover && e.pointerType === 'mouse') { tagEl.textContent = hover.name; tagEl.style.left = (x / DPR) + 'px'; tagEl.style.top = (y / DPR) + 'px'; tagEl.classList.add('on'); } else tagEl.classList.remove('on');
+});
+stage.addEventListener('contextmenu', e => e.preventDefault());
+stage.addEventListener('pointerleave', () => { ptr.px = -1; hover = null; tagEl.classList.remove('on'); });
+stage.addEventListener('pointerdown', e => {
+  const [x, y] = local(e);
+  if (painting) { painting.done(); lockUntil = performance.now() + 450; return; }
+  if (performance.now() < lockUntil) return;
+  if (brush) { stage.setPointerCapture(e.pointerId); return brush.down(x, y); }
+  if (onHold) { stage.setPointerCapture(e.pointerId); onHold(true); return; }
+  const tg = hitTarget(x, y);
+  if (tg && tg.go) { tagEl.classList.remove('on'); lockUntil = performance.now() + 600; tg.go(); return; }
+  if (onTap) { lockUntil = performance.now() + 600; onTap(); }
+});
+const up = () => { if (brush) brush.up(); if (onHold) onHold(false); };
+stage.addEventListener('pointerup', up); stage.addEventListener('pointercancel', up);
+nextBtn.addEventListener('pointerdown', e => e.stopPropagation());
+$('#endBtns').addEventListener('pointerdown', e => e.stopPropagation());
+$('#brand').addEventListener('pointerdown', e => e.stopPropagation());
+$('#toHall').addEventListener('click', () => { location.href = '../#01'; });
+nextBtn.addEventListener('click', e => { e.stopPropagation(); if (onTap) onTap(); else if (targets.find(t => !t.seen && t.go)) targets.find(t => !t.seen && t.go).go(); });
+addEventListener('keydown', e => { if (e.key === 'ArrowRight' || e.key === 'Enter' || e.key === ' ') { if (painting) painting.done(); else nextBtn.click(); e.preventDefault(); } if (e.key === 'Escape' && hub.ready) hub.go(); });
+let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (size()) { if (painting) painting.done(); P.fillStyle = '#111917'; P.fillRect(0, 0, SW, SH); drawView(P, view); } }, 120); });
+
+/* 等一次点击（点画面任意处或“继续”） */
+function waitTap(text = '点击画面继续') { hint(text); return new Promise(res => { setTimeout(() => { onTap = () => { onTap = null; hint(''); stage.classList.remove('pointer'); res(); }; }, 500); }); }
+
+/* ---------- 故事 ---------- */
+const dots = [...document.querySelectorAll('#dots i')];
+const FULL = { src: 'orig', cx: 0.5, cy: 0.5, z: 1 };
+const PLACES = [
+  { id: 'harbor', name: '烟与桅杆', x: 520, y: 420, rx: 280, ry: 230, view: { src: 'orig', cx: 0.25, cy: 0.3, z: 2.3 }, pos: 'br', lines: [
+    '左边这团打着旋的蓝绿色，是蒸汽船冒出的烟。', '后面密密麻麻的竖线，是帆船的桅杆。', '一座忙碌的工业港口。<br>可是没有一根桅杆，被画清楚。'] },
+  { id: 'cranes', name: '对岸的吊车', x: 1680, y: 560, rx: 260, ry: 140, view: { src: 'orig', cx: 0.76, cy: 0.38, z: 2.3 }, pos: 'bl', lines: [
+    '对岸是船坞和吊车。勒阿弗尔是当时法国最繁忙的港口之一。', '可在画里，它们只是雾中几道斜线。', '莫奈画的不是港口。<br>他画的是港口上空的<em>雾和光</em>。'] },
+  { id: 'refl', name: '水里的倒影', x: 1215, y: 1050, rx: 100, ry: 250, lx: 1330, ly: 900, view: { src: 'orig', cx: 0.61, cy: 0.69, z: 3.2 }, pos: 'bl', lines: [
+    '太阳的倒影，是一串横着的短笔。', '颜料堆得很厚，一笔下去，不再修改。', '笔和笔之间，直接露出水的颜色。'] },
+  { id: 'boat', name: '小船', x: 950, y: 1110, rx: 140, ry: 130, lx: 850, ly: 1250, view: { src: 'orig', cx: 0.47, cy: 0.72, z: 3.4 }, pos: 'br', lines: [
+    '一条船，一个站着摇桨的人。', '几笔深色。没有脸，也没有桨的细节。', '在晨雾里，你本来也看不清这些。<br>他画的是<em>眼睛看到的</em>，不是脑子里知道的。'] }
+];
+const SUNT = { id: 'sun', name: '太阳', x: 1217, y: 480, rx: 90, ry: 90 };
+const hub = { ready: false, first: true, async go() {} };
+
+async function run() {
+  // 开场：画面在浓雾里一笔笔出现
+  setFog(0.9, true); fogRegrow = 0.02;
+  paintTo(FULL, { from: 'black' });
+  await say([{ t: '印象<b>·</b>日出', cls: 'title dark' }, { t: 'Impression, soleil levant', cls: 'fr dark' }, { t: '克劳德·莫奈，1872', cls: 'small dark' }], 'c nobg', 700);
+  hintEl.classList.add('dark'); await waitTap('点击任意处，走进 1872 年的清晨　建议戴上耳机'); hintEl.classList.remove('dark');
+  soundOn();
+  // 拨开晨雾
+  fogRegrow = 0.0015;
+  await say([{ t: '1872 年 11 月 13 日，早上 7 点 35 分。', cls: 'dark' }, { t: '法国北部，勒阿弗尔港。', cls: 'dark' }, { t: matchMedia('(pointer: coarse)').matches ? '用手指拨开晨雾。' : '晃动鼠标，拨开晨雾。', cls: 'dark small' }], 'c nobg', 1400);
+  await new Promise(res => { const chk = setInterval(() => { if (fogCleared() > 0.4) { clearInterval(chk); onTap = null; hint(''); res(); } }, 200); setTimeout(() => { hint('点击画面继续'); onTap = () => { clearInterval(chk); onTap = null; hint(''); res(); }; }, 7000); });
+  setFog(0.14); fogRegrow = 0.012;
+  clearWords(); await sleep(700);
+  await say(['31 岁的莫奈，站在港口边一家旅馆的窗前。', '这是他长大的城市。明天，是他 32 岁的生日。', { t: '这个时刻，是天文学家唐纳德·奥尔森根据画里太阳的位置和当天的潮汐推算出来的。', cls: 'small' }], 'bl');
+  await waitTap();
+  await explore();
+}
+
+async function explore() {
+  hub.ready = true;
+  const go = async () => {
+    targets = []; await paintTo(FULL); setFog(0.14); shimmer = true;
+    const left = PLACES.filter(p => !p.seen);
+    if (left.length) {
+      targets = PLACES.map(p => Object.assign(p, { go: () => visit(p) }));
+      const msg = hub.first ? ['窗外有烟、有吊车、有小船，还有水里的倒影。', '在画里找到它们，点一下，凑近看看。'] : [`还有 ${left.length} 处没看。`];
+      hub.first = false; say(msg, 'bl');
+      hint(coarse ? '点画里标出的地方' : '把鼠标移到画里发亮的地方');
+    } else {
+      targets = [Object.assign(SUNT, { go: () => { targets = []; climax(); } })];
+      say(['港口看完了。', '现在，看看那颗<em>太阳</em>。'], 'bl'); hint('点击太阳');
+    }
+  };
+  hub.go = go; await go();
+}
+async function visit(p) {
+  targets = []; hint(''); clearWords(); shimmer = false;
+  await paintTo(p.view); setFog(0.08); shimmer = p.id === 'refl' || p.id === 'boat';
+  p.seen = true; dots[PLACES.indexOf(p)].classList.add('on');
+  await say(p.lines, p.pos);
+  await waitTap('点击画面，退后一步');
+  clearWords(); hub.go();
+}
+
+async function climax() {
+  hub.ready = false; hint(''); clearWords(); shimmer = false;
+  await paintTo({ src: 'orig', cx: 0.6, cy: 0.33, z: 1.9 }); shimmer = true;
+  await say(['太阳刚升起二十多分钟。', '这样的光，只会停留几十分钟。'], 'bl');
+  clockEl.innerHTML = '07:35<small>勒阿弗尔</small>'; clockEl.classList.add('on');
+  lightTarget = 0;
+  for (let m = 35; m <= 55; m++) { clockEl.innerHTML = `07:${m}<small>勒阿弗尔</small>`; lightTarget = (m - 35) / 20; setFog(0.14 - (m - 35) / 20 * 0.12); await sleep(reduce ? 20 : 170); }
+  await say(['雾在散，光在变。', '等他调好颜色，眼前已经是另一幅景色。', '所以，他必须画得<em>很快</em>。'], 'bl');
+  await waitTap('点击画面，拿起画笔');
+  clockEl.classList.remove('on'); lightTarget = 0; light = 0; clearWords();
+  await race();
+}
+
+async function race() {
+  shimmer = false; setFog(0.06);
+  const RV = SW < SH * 0.95 ? { cx: 0.6, cy: 0.5, z: 1.8 } : { cx: 0.5, cy: 0.5, z: 1 };
+  await paintTo(Object.assign({ src: 'noRefl' }, RV));
+  await say(['倒影被抹掉了。', '你有 <em>20 秒</em>，把它画回去。', { t: '在太阳正下方的水面上，横着画一些短短的、断开的橙红色笔触。落下第一笔，时钟就开始走。', cls: 'small' }], 'tl', 900);
+  const ORANGE = [228, 112, 78], BW = Math.max(6 * DPR, Math.min(SW, SH) / 70), MAXLEN = Math.max(60 * DPR, Math.min(SW, SH) / 9);
+  let strokesN = 0, inRefl = 0, startT = 0, cur = null, ended = false;
+  const bristles = () => { const r = rng((Math.random() * 1e9) | 0); return Array.from({ length: 7 }, (_, i) => ({ o: (i / 6 - 0.5) * BW * (0.8 + r() * 0.4), j: [(r() - 0.5) * 34, (r() - 0.5) * 30, (r() - 0.5) * 26], a: 0.55 + r() * 0.45, lw: BW / 7 * 2 })); };
+  await new Promise(done => {
+    brush = {
+      down(x, y) {
+        if (ended) return;
+        if (!startT) { startT = performance.now(); clearWords(); clockEl.classList.add('on'); tick(); }
+        cur = { pts: [[x, y]], len: 0, br: bristles() }; strokesN++;
+      },
+      move(x, y) {
+        if (!cur || ended) return; const p = cur.pts[cur.pts.length - 1], d = Math.hypot(x - p[0], y - p[1]); if (d < 2 || cur.len >= MAXLEN) return;
+        cur.len += d; const f = cur.len / MAXLEN, fade = 1 - f * f * 0.85, nx = -(y - p[1]) / d, ny = (x - p[0]) / d; P.lineCap = 'round';
+        cur.br.forEach(b => { if (f > 0.45 && Math.random() < (f - 0.45) * 1.4) return; P.strokeStyle = rgba([ORANGE[0] + b.j[0], ORANGE[1] + b.j[1], ORANGE[2] + b.j[2]], (0.95 * b.a * fade).toFixed(2)); P.lineWidth = b.lw;
+          P.beginPath(); P.moveTo(p[0] + nx * b.o, p[1] + ny * b.o); P.lineTo(x + nx * b.o, y + ny * b.o); P.stroke(); });
+        cur.pts.push([x, y]);
+      },
+      up() { if (!cur) return; const n = cur.pts.length; if (n > 2) { const ax = cur.pts.reduce((a, q) => a + q[0], 0) / n, ay = cur.pts.reduce((a, q) => a + q[1], 0) / n, [ix, iy] = toImg(view, ax, ay); if (Math.abs(ix - 1217) < 150 && iy > 790) inRefl++; } cur = null; }
+    };
+    stage.classList.add('brush');
+    const tick = () => {
+      const el = (performance.now() - startT) / 1000, p = Math.min(1, el / 20);
+      clockEl.innerHTML = `${Math.max(0, Math.ceil(20 - el))}<small>07:${35 + Math.round(p * 20)} · 光在变</small>`;
+      lightTarget = p * 0.9; light = lightTarget;
+      if (el >= 20) { ended = true; brush = null; stage.classList.remove('brush'); done(); return; }
+      requestAnimationFrame(tick);
+    };
+  });
+  await sleep(400);
+  await say([`时间到。光已经变了。`, `你画了 ${strokesN} 笔，${inRefl} 笔落在倒影里。`, inRefl >= 5 ? '快、短、不修改。你已经在用莫奈的方法了。' : '来不及吧？莫奈那天早上，面对的就是这种紧迫。'], 'tl', 1200);
+  await waitTap('点击画面，看莫奈画的');
+  clockEl.classList.remove('on'); lightTarget = 0; clearWords();
+  await sleep(300); light = 0;
+  await paintTo(Object.assign({ src: 'orig' }, RV)); shimmer = true;
+  await say(['这是莫奈画的倒影。'], 'tl');
+  await waitTap();
+  await secret();
+}
+
+async function secret() {
+  clearWords();
+  await say(['太阳是整幅画里最显眼的东西。', '可它其实一点也不亮。'], 'bl');
+  hint('按住画面不放，把颜色拿掉');
+  let held = 0, t0 = 0;
+  await new Promise(res => {
+    onHold = async down => {
+      if (down) { t0 = performance.now(); grayTarget = 1; hint(''); if (!held) say(['太阳不见了。', '它的亮度是 <em>128</em>，周围的天空是 <em>130</em>。', { t: '亮度从 0（纯黑）到 255（纯白），由程序在这张数字图像上测得。', cls: 'small' }], 'bl', 1100); }
+      else { grayTarget = 0; if (performance.now() - t0 > 700) held++; if (held >= 1) { onHold = null; res(); } else hint('按住画面不放，把颜色拿掉'); }
+    };
+  });
+  await sleep(500);
+  await say(['我们的眼睛，一部分只管明暗，一部分只管颜色。', '明暗那部分看不见这颗太阳，颜色那部分看得很清楚。', '两边对不上，太阳就像在<em>颤动、发光</em>。', { t: '这是神经科学家玛格丽特·利文斯通在《视觉与艺术》里提出的解释。', cls: 'small' }], 'bl');
+  await waitTap();
+  await paris();
+}
+
+async function paris() {
+  clearWords(); shimmer = false; setFog(0.05);
+  if (SRC.meis) {
+    await paintTo({ src: 'meis', cx: 0.5, cy: 0.5, z: 1 });
+    await say(['可在当时，这不叫“好画”。', '这是那个年代最受追捧的画家之一梅索尼埃的作品：拿破仑骑着白马，带着部下走过泥泞的雪地。', '每一匹马、每一颗扣子都画得清清楚楚。表面光滑，看不见一笔笔触。', { t: '欧内斯特·梅索尼埃《1814 年法国战役》，1864 年，巴黎奥赛博物馆藏。', cls: 'small' }], 'bl');
+    await waitTap();
+    clearWords();
+  }
+  await paintTo({ src: 'orig', cx: 0.22, cy: 0.16, z: 2.6 });
+  await say(SRC.meis ? ['再看莫奈的天空。', '每一笔都看得见。有的地方，薄到露出了画布。', '在当时的评委眼里，这根本就是一张没画完的草稿。'] : ['可在当时，这不叫“好画”。', '官方沙龙喜欢的画，表面光滑得像瓷器，看不见一笔笔触。画的是历史、神话和英雄，在画室里一改就是几个月。', '而这幅画，每一笔都看得见。天空有的地方，薄到露出了画布。'], 'br');
+  await waitTap();
+  clearWords(); setFog(0.14);
+  await paintTo(FULL); shimmer = true;
+  await say(['1874 年，莫奈把这幅画送去展览。', '一位评论家写道：<br>“还没完工的墙纸，都比这幅海景画得更完整。”', '他借这幅画的标题，嘲笑这群画家是<em>“印象派”</em>。', { t: '路易·勒鲁瓦，《喧哗》报，1874 年 4 月 25 日。画家们后来干脆接受了这个名字。', cls: 'small' }], 'bl');
+  await waitTap();
+  clearWords(); setFog(0.3); fogRegrow = 0.004;
+  await say(['他确实没有画完。', '他想留住的，只是那二十分钟的光。'], 'c', 1800);
+  await sleep(1200);
+  await say(['他确实没有画完。', '他想留住的，只是那二十分钟的光。', { t: '展厅里还有五幅画在布展中，下一幅是莫奈的《干草堆》。', cls: 'small' }], 'c', 0);
+  await sleep(800);
+  const endBtns = $('#endBtns'); endBtns.classList.add('on');
+  const choice = await new Promise(res => { $('#againHub').onclick = () => res('hub'); $('#againAll').onclick = () => res('all'); });
+  endBtns.classList.remove('on'); clearWords();
+  PLACES.forEach(p => { p.seen = false; }); dots.forEach(d => d.classList.remove('on')); hub.first = true;
+  if (choice === 'all') { setFog(0.9); fogRegrow = 0.02; await sleep(900); run(); return; }
+  setFog(0.14); fogRegrow = 0.012; await explore();
+}
+})();
+</script>
+
+</body>
+</html>
