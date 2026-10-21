@@ -1,4 +1,4 @@
-"""把网站用到的字从完整字体里挑出来，生成很小的 woff2 字体文件。
+"""把网站用到的字（扫描所有 .html 和 .js）从完整字体里挑出来，生成很小的 woff2 字体文件。
 
 改动了页面文字后重新运行：
     python3 tools/subset_fonts.py <完整字体所在文件夹>
@@ -13,7 +13,7 @@ from fontTools import subset
 src = sys.argv[1]
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 text = string.printable + '，。、；：？！“”‘’（）《》—…·→←×％'
-for f in glob.glob(os.path.join(root, '**', '*.html'), recursive=True):
+for f in glob.glob(os.path.join(root, '**', '*.html'), recursive=True) + glob.glob(os.path.join(root, '**', '*.js'), recursive=True):
     text += open(f, encoding='utf-8').read()
 chars = ''.join(sorted(set(text)))
 out = os.path.join(root, 'fonts'); os.makedirs(out, exist_ok=True)

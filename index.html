@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>印象画室</title>
-<meta name="description" content="一面展墙，六幅印象派名作。沿着墙走，走进画里，看懂印象派在看什么。">
+<meta name="description" content="一面展墙，四幅莫奈。沿着墙走，走进画里，看懂印象派在看什么。">
 <meta property="og:title" content="印象画室">
 <meta property="og:image" content="gallery/sunrise-thumb.jpg">
 <style>@font-face{font-family:"ZCOOL XiaoWei";src:url(fonts/zcool-xiaowei.woff2) format("woff2");font-weight:400;font-style:normal;font-display:swap}@font-face{font-family:"Noto Serif SC";src:url(fonts/noto-serif-sc-400.woff2) format("woff2");font-weight:400;font-style:normal;font-display:swap}@font-face{font-family:"Noto Serif SC";src:url(fonts/noto-serif-sc-600.woff2) format("woff2");font-weight:600;font-style:normal;font-display:swap}@font-face{font-family:"IM Fell English";src:url(fonts/im-fell-english.woff2) format("woff2");font-weight:400;font-style:normal;font-display:swap}@font-face{font-family:"IM Fell English";src:url(fonts/im-fell-english-italic.woff2) format("woff2");font-weight:400;font-style:italic;font-display:swap}</style>
@@ -89,7 +89,6 @@ body{margin:0;background:var(--wall);color:var(--fog);font-family:var(--f-body);
 .corner{position:fixed;z-index:5;font-size:13px;letter-spacing:.16em;color:var(--mist)}
 #brand{left:calc(var(--gut-l) + 8px);top:calc(env(safe-area-inset-top,0px) + 16px);font-family:var(--f-display);font-size:17px;letter-spacing:.24em;color:var(--fog)}
 #brand b{color:var(--sun);font-weight:400}
-#sizeBtn{right:calc(var(--gut-r) + 4px);top:calc(env(safe-area-inset-top,0px) + 8px)}
 .corner button{background:none;border:0;font:inherit;color:inherit;letter-spacing:inherit;padding:8px 10px;cursor:pointer}
 .corner button:hover{color:var(--fog)}
 .dots{left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);transform:translateX(-50%);display:flex;gap:6px;align-items:center}
@@ -124,7 +123,6 @@ body{margin:0;background:var(--wall);color:var(--fog);font-family:var(--f-body);
   <div id="track"></div>
 </div>
 <div id="brand" class="corner">印象<b>·</b>画室</div>
-<div id="sizeBtn" class="corner"><button type="button" aria-pressed="false">按真实尺寸挂</button></div>
 <button id="arrowL" type="button" aria-label="上一幅">‹</button>
 <button id="arrowR" type="button" aria-label="下一幅">›</button>
 <nav class="dots corner" id="dots" aria-label="展位"></nav>
@@ -139,19 +137,17 @@ const coarse = matchMedia('(pointer: coarse)').matches;
 function rng(seed) { return () => { seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 
 const WORKS = [
-  { no: '01', title: '印象·日出', fr: 'Impression, soleil levant', artist: '克劳德·莫奈', year: '1872', cm: [48, 63], where: '巴黎 · 玛摩丹·莫奈美术馆', theme: '光的一瞬',
-    line: '一个早晨的二十分钟，给整个画派起了名字。拨开晨雾，在画里走一走，再和光赛跑一次。', open: true, href: 'sunrise/', img: 'gallery/sunrise-thumb.jpg' },
-  { no: '02', title: '干草堆（系列）', fr: 'Meules', artist: '克劳德·莫奈', year: '1890–1891', cm: [60, 100], where: '分藏于世界各地的美术馆', theme: '时间', sizeNote: '系列中一幅的尺寸',
-    line: '同一堆干草，他从清晨画到黄昏，从夏末画到雪天。真正的主角不是干草，是时间。', pal: [[214, 172, 96], [232, 198, 142], [150, 140, 182], [96, 118, 160], [204, 122, 82]] },
-  { no: '03', title: '煎饼磨坊的舞会', fr: 'Bal du moulin de la Galette', artist: '皮埃尔-奥古斯特·雷诺阿', year: '1876', cm: [131, 175], where: '巴黎 · 奥赛博物馆', theme: '彩色的阴影',
-    line: '树叶缝里漏下的光斑，落在跳舞的人身上。阴影不是灰的，是蓝的、紫的。', pal: [[58, 78, 112], [122, 142, 172], [232, 202, 172], [92, 112, 72], [242, 232, 204]] },
-  { no: '04', title: '舞蹈课', fr: 'La Classe de danse', artist: '埃德加·德加', year: '1873–1876', cm: [85, 75], where: '巴黎 · 奥赛博物馆', theme: '抓拍的构图',
-    line: '像一张随手抓拍的照片：画面被裁得很随意，老师站在中间，女孩们散在四周，前景空着大片地板。', pal: [[192, 190, 160], [236, 232, 220], [172, 140, 102], [122, 140, 130], [204, 92, 72]] },
-  { no: '05', title: '摇篮', fr: 'Le Berceau', artist: '贝尔特·莫里索', year: '1872', cm: [56, 46], where: '巴黎 · 奥赛博物馆', theme: '日常与亲情',
-    line: '第一届印象派展上唯一的女画家。她画姐姐守着熟睡的孩子，中间隔着一层白纱。', pal: [[236, 232, 226], [202, 206, 212], [222, 192, 192], [62, 62, 72], [152, 166, 182]] },
-  { no: '06', title: '大碗岛的星期天下午', fr: 'Un dimanche après-midi à l’Île de la Grande Jatte', artist: '乔治·修拉', year: '1884–1886', cm: [207.6, 308], where: '芝加哥艺术博物馆', theme: '色彩的科学',
-    line: '成千上万个色点，在你的眼睛里混成颜色。它在 1886 年最后一届印象派展上亮相，也打开了下一个时代。', pal: [[82, 132, 62], [152, 182, 82], [232, 212, 142], [72, 112, 152], [42, 42, 46]] }
+  { no: '01', title: '印象·日出', fr: 'Impression, soleil levant', year: '1872', size: '48 × 63 厘米', where: '巴黎 · 玛摩丹·莫奈美术馆', theme: '光的一瞬', ar: 63 / 48,
+    line: '一个早晨的二十分钟，给整个画派起了名字。拨开晨雾，在画里走一走，再和光赛跑一次。', href: 'sunrise/', img: 'gallery/sunrise-thumb.jpg',
+    pre: ['sunrise/sunrise-m.jpg', 'sunrise/plate.jpg', 'sunrise/sun.png', 'sunrise/refl.png', 'sunrise/boat1.png', 'sunrise/boat2.png', 'sunrise/boat3.png'] },
+  { no: '02', title: '撑阳伞的女人', fr: 'Femme à l’ombrelle', year: '1875', size: '100 × 81 厘米', where: '华盛顿 · 美国国家美术馆', theme: '风与彩色的阴影', ar: 81 / 100,
+    line: '妻子和儿子站在起风的小坡上。吹一阵风，再看看她的白裙子：上面几乎没有一处是纯白。', href: 'parasol/', img: 'gallery/parasol-thumb.jpg', pre: ['parasol/parasol-m.jpg'] },
+  { no: '03', title: '干草堆（系列）', fr: 'Meules', year: '1890–1891', size: '系列约 25 幅，每幅约 65 × 100 厘米', where: '分藏于世界各地的美术馆', theme: '时间', ar: 100 / 60,
+    line: '同一堆干草，九种光。拖动时间，看它从夏末的清晨，走到雪后的日落。', href: 'haystacks/', img: 'gallery/haystacks-thumb.jpg', pre: ['haystacks/h05.jpg', 'haystacks/h02.jpg', 'haystacks/h06.jpg'] },
+  { no: '04', title: '睡莲', fr: 'Nymphéas', year: '1906', size: '系列约 250 幅，1897–1926', where: '这一幅为印刷复制品', theme: '水与倒影', ar: 1000 / 645,
+    line: '画里没有天，天只在水里。点一点水面，看看你看到的，有多少是真的。', href: 'lilies/', img: 'gallery/lilies-thumb.jpg', pre: ['lilies/lilies.jpg'] }
 ];
+WORKS.forEach(w => { w.open = true; w.artist = '克劳德·莫奈'; });
 
 /* ---------- 墙面：一层暗绿色的笔触 ---------- */
 function paintWall() {
@@ -183,20 +179,20 @@ function blurPalette(pal, seed, ar) {
 /* ---------- 搭展墙 ---------- */
 const track = $('#track'), dotsEl = $('#dots');
 const intro = document.createElement('section'); intro.className = 'item intro-item';
-intro.innerHTML = `<div class="intro"><div class="eyebrow">第一展厅 · 六幅画</div><h1>印象<b>·</b>派</h1>
-  <div class="sub">一群画家，怎样把“光”画进画里</div>
-  <p>1874 年，一群总被官方沙龙拒之门外的画家，自己办了一场展览。一位评论家借其中一幅画的名字，嘲笑他们是“印象派”。</p>
-  <p>这面墙上挂着六幅画，按参观顺序排好。每一幅，讲一件印象派做到的事。</p>
+intro.innerHTML = `<div class="intro"><div class="eyebrow">第一展厅 · 克劳德·莫奈（1840–1926）</div><h1>追光<b>·</b>的人</h1>
+  <div class="sub">四幅莫奈，看懂印象派在看什么</div>
+  <p>1874 年，一群总被官方沙龙拒之门外的画家，自己办了一场展览。一位评论家借莫奈一幅画的名字，嘲笑他们是“印象派”。</p>
+  <p>莫奈是这群人里最执着的一个，他画了一辈子的光。这面墙按年份挂着他的四幅画，从三十出头，一直到晚年。</p>
   <div class="walk">${coarse ? '向左滑动，沿着展墙往前走 →' : '拖动、滚动或按 → ，沿着展墙往前走 →'}</div></div>`;
 track.appendChild(intro);
 const items = [intro];
 WORKS.forEach((w, i) => {
   const el = document.createElement('section'); el.className = 'item' + (w.open ? ' open' : ''); el.setAttribute('aria-label', `${w.no} ${w.title}`);
-  const ar = w.cm[1] / w.cm[0]; el.style.setProperty('--ar', ar); el.dataset.cmh = w.cm[0];
+  const ar = w.ar; el.style.setProperty('--ar', ar);
   el.innerHTML = `<div class="frame"><div class="pic"></div></div>
     <div class="label"><div class="no"><span>No. ${w.no}</span><b>${w.theme}</b></div>
       <h2>${w.title}</h2><div class="fr">${w.fr}</div>
-      <div class="meta">${w.artist}，${w.year}<br>布面油画 · ${w.cm[0]} × ${w.cm[1]} 厘米${w.sizeNote ? '（' + w.sizeNote + '）' : ''}<br>${w.where}</div>
+      <div class="meta">克劳德·莫奈，${w.year}<br>布面油画 · ${w.size}<br>${w.where}</div>
       <p>${w.line}</p>
       ${w.open ? '<button class="go" type="button">走进这幅画 →</button>' : '<div class="soon">布展中 · 敬请期待</div>'}</div>`;
   const pic = el.querySelector('.pic');
@@ -211,18 +207,11 @@ items.forEach((el, i) => {
   b.addEventListener('click', () => go(i)); dotsEl.appendChild(b);
 });
 
-/* ---------- 尺寸：统一大小 / 真实尺寸 ---------- */
-let realSize = false;
+/* ---------- 画框大小 ---------- */
 function sizeFrames() {
-  const vh = innerHeight, vw = innerWidth, wide = vw >= 900 && vw >= vh, base = Math.min(vh * (wide ? 0.6 : vw < 700 ? 0.36 : 0.44), 620), maxCm = 207.6;
-  items.slice(1).forEach(el => {
-    const ar = +el.style.getPropertyValue('--ar'), cmh = +el.dataset.cmh;
-    let h = realSize ? vh * (wide ? 0.66 : 0.4) * cmh / maxCm : base;
-    h = Math.min(h, vw * (wide ? 0.58 : 0.72) / ar); el.querySelector('.frame').style.setProperty('--h', h + 'px');
-  });
+  const vh = innerHeight, vw = innerWidth, wide = vw >= 900 && vw >= vh, base = Math.min(vh * (wide ? 0.6 : vw < 700 ? 0.36 : 0.44), 620);
+  items.slice(1).forEach(el => { const ar = +el.style.getPropertyValue('--ar'); el.querySelector('.frame').style.setProperty('--h', Math.min(base, vw * (wide ? 0.58 : 0.72) / ar) + 'px'); });
 }
-const sizeBtn = $('#sizeBtn button');
-sizeBtn.addEventListener('click', () => { realSize = !realSize; sizeBtn.textContent = realSize ? '统一大小' : '按真实尺寸挂'; sizeBtn.setAttribute('aria-pressed', realSize); sizeFrames(); setTimeout(measure, 950); });
 
 /* ---------- 沿着展墙走 ---------- */
 let centers = [], x = 0, target = 0, idx = 0, moved = false;
@@ -235,6 +224,7 @@ function setFocus(i) {
   if (i === focusIdx) return; focusIdx = i;
   items.forEach((el, k) => el.classList.toggle('focus', k === i));
   [...dotsEl.children].forEach((b, k) => b.classList.toggle('on', k === i));
+  prefetch(i);
 }
 function frame() {
   x += (target - x) * (reduce ? 1 : 0.11); if (Math.abs(target - x) < 0.3) x = target;
@@ -286,9 +276,9 @@ function enter(el, w) {
 }
 addEventListener('pageshow', e => { if (e.persisted) { $('#veil').style.opacity = 0; document.querySelectorAll('body > img').forEach(n => n.remove()); } });
 
-/* ---------- 提前把《印象·日出》的图下载好，点进去就不用再等 ---------- */
-setTimeout(() => { const low = Math.max(innerWidth, innerHeight) * Math.min(1.5, devicePixelRatio || 1) < 1700;
-  [low ? 'sunrise-m.jpg' : 'sunrise.jpg', 'plate.jpg', 'sun.png', 'refl.png', 'boat1.png', 'boat2.png', 'boat3.png'].forEach(f => { const i = new Image(); i.src = 'sunrise/' + f; }); }, 1500);
+/* ---------- 在哪幅画前停下，就先把那幅的图下载好，点进去不用再等 ---------- */
+const fetched = new Set(); let preT;
+function prefetch(i) { clearTimeout(preT); if (i < 1) return; preT = setTimeout(() => { const w = WORKS[i - 1]; if (fetched.has(w.no)) return; fetched.add(w.no); w.pre.forEach(f => { const im = new Image(); im.src = f; }); }, 700); }
 
 /* ---------- 启动 ---------- */
 sizeFrames();
