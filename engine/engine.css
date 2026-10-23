@@ -137,3 +137,19 @@ body{background:var(--deep);color:var(--fog);font-family:var(--f-body);overflow:
 #cap .pal span{display:block;height:100%}
 #stage canvas.spin{transition:transform 1.4s cubic-bezier(.6,0,.2,1)}
 @media (max-width:700px){#cap{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 14vh);left:var(--gut-l);right:var(--gut-r);max-width:none;padding-inline:8px}#cap .t{font-size:24px}#cap .n{font-size:14px}#panel{bottom:calc(env(safe-area-inset-bottom,0px) + 7vh)}}
+
+/* 手机横屏：屏幕很矮，文字缩小、位置下移 */
+@media (max-height:500px) and (min-aspect-ratio:1/1){
+  .line{font-size:17px;line-height:1.5}
+  .line.small{font-size:12.5px}
+  .line.title{font-size:44px}
+  #words{gap:6px;max-width:min(480px,52vw)}
+  #words.bl,#words.tl{bottom:calc(env(safe-area-inset-bottom,0px) + 9vh);top:auto}
+  #words.br{bottom:calc(env(safe-area-inset-bottom,0px) + 9vh)}
+  #hint{bottom:calc(env(safe-area-inset-bottom,0px) + 2vh);font-size:13px}
+  #clock{top:calc(env(safe-area-inset-top,0px) + 34px);font-size:34px}
+}
+/* 触屏：角落的按钮点起来更容易 */
+@media (pointer:coarse){#soundBtn,#nextBtn{padding:12px 14px}#brand{padding:12px 14px}}
+
+.line{text-wrap:pretty}

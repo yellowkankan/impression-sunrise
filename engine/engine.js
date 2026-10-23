@@ -12,6 +12,45 @@ function rng(seed) { return () => { seed = (seed + 0x6D2B79F5) | 0; let t = Math
 const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
 const B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 const LOW = Math.max(innerWidth, innerHeight) * DPR < 1700;
+/* 中文排版：只在词与词之间换行；人名、日期、时间、尺寸不拆开 */
+const tidy = (() => {
+  const SEG = typeof Intl !== 'undefined' && Intl.Segmenter ? new Intl.Segmenter('zh', { granularity: 'word' }) : null;
+  const KEEP = /(\d{4}\s*年(?:\s*\d{1,2}\s*月(?:\s*\d{1,2}\s*日)?)?|\d{1,2}\s*月\s*\d{1,2}\s*日|\d{1,2}\s*点(?:\s*\d{1,2}\s*分)?|\d+(?:\.\d+)?\s*×\s*\d+(?:\.\d+)?\s*(?:厘米)?|\d{4}\s*[–-]\s*\d{4}|\d+(?:\.\d+)?\s*(?:岁|幅|%|厘米|秒|笔|种|处|分钟|天|年|月)|[一-鿿]{1,6}[·-][一-鿿]{1,8}|《[^》]{1,14}》|“[^”]{1,8}”)/g;
+  const ZW = '​';
+  const TRAIL = new Set('的了着过们地得前里上下中边吗呢吧啊么后外内处似般样幅个位条种只张座家块片次'.split(''));
+  const CJK = s => /^[\u4e00-\u9fff]/.test(s), PUN = s => /^[，。、；：？！…）”]+$/.test(s);
+  // 断行规则：“的、了、前、里”这类字黏着前一个词；其他单字黏着后一个词；标点后可以断
+  function canBreak(a, b, c) {
+    if (PUN(a)) return CJK(b);
+    if (b.length === 1 && (!c || PUN(c) || !CJK(c))) return false;
+    if (!CJK(a) || !CJK(b)) return false;
+    if (b.length === 1 && TRAIL.has(b)) return false;
+    if (a.length === 1 && !TRAIL.has(a)) return false;
+    return true;
+  }
+  function words(t) {
+    if (!SEG) return t;
+    const seg = [...SEG.segment(t)].map(x => x.segment); let out = seg[0] || '';
+    for (let i = 1; i < seg.length; i++) out += (canBreak(seg[i - 1], seg[i], seg[i + 1]) ? ZW : '') + seg[i];
+    return out;
+  }
+  function fix(node) {
+    [...node.childNodes].forEach(n => {
+      if (n.nodeType === 1) { if (!n.classList.contains('nb')) fix(n); return; }
+      if (n.nodeType !== 3 || !n.nodeValue.trim()) return;
+      const frag = document.createDocumentFragment(), t = n.nodeValue; let last = 0, m; KEEP.lastIndex = 0;
+      while ((m = KEEP.exec(t))) {
+        if (m.index > last) frag.appendChild(document.createTextNode(words(t.slice(last, m.index)) + ZW));
+        const sp = document.createElement('span'); sp.className = 'nb'; sp.style.whiteSpace = 'nowrap'; sp.textContent = m[0]; frag.appendChild(sp);
+        frag.appendChild(document.createTextNode(ZW)); last = m.index + m[0].length;
+      }
+      if (last < t.length) frag.appendChild(document.createTextNode(words(t.slice(last))));
+      n.replaceWith(frag);
+    });
+  }
+  return el => { if (!el) return el; try { fix(el); el.style.wordBreak = 'keep-all'; el.style.overflowWrap = 'anywhere'; } catch (e) {} return el; };
+})();
+
 
 function start(cfg) {
   document.title = cfg.pageTitle || document.title;
@@ -53,10 +92,11 @@ function start(cfg) {
     else { f.type = 'lowpass'; f.frequency.value = 520; g.gain.value = 0.3; lfo.frequency.value = 0.09; lg.gain.value = 0.2; }
     lfo.connect(lg); lg.connect(g.gain); s.connect(f); f.connect(g); g.connect(ac.destination); s.start(); lfo.start();
     audio = { ctx: ac, timer: 0 };
+    /* iPhone 静音开关打开时，网页声音默认被静音；先放一段无声的音频，让声音走“媒体播放”通道 */ try { const el = new Audio('data:audio/wav;base64,UklGRkQDAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YSADAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA=='); el.loop = true; el.setAttribute('playsinline', ''); const pr = el.play(); if (pr) pr.catch(() => {}); audio.el = el; } catch (e) {}
     const tick = () => { if (!audio) return; if (kind !== 'harbor') bird(ac, ac.destination); audio.timer = setTimeout(tick, (kind === 'water' ? 7000 : 4000) + Math.random() * 8000); };
     audio.timer = setTimeout(tick, 2500); soundBtn.textContent = '声音 开';
   }
-  function soundOff() { if (!audio) return; clearTimeout(audio.timer); audio.ctx.close(); audio = null; soundBtn.textContent = '声音 关'; }
+  function soundOff() { if (!audio) return; clearTimeout(audio.timer); if (audio.el) audio.el.pause(); audio.ctx.close(); audio = null; soundBtn.textContent = '声音 关'; }
   soundBtn.addEventListener('click', e => { e.stopPropagation(); audio ? soundOff() : soundOn(); });
 
   /* ---------- 文字 ---------- */
@@ -67,7 +107,7 @@ function start(cfg) {
     wordsEl.classList.remove('out'); wordsEl.innerHTML = ''; wordsEl.className = pos; if (lines.length) wordsEl.classList.add('has');
     for (let i = 0; i < lines.length; i++) {
       if (tok !== wordsToken) return false;
-      const l = lines[i], p = document.createElement('p'); p.className = 'line ' + (l.cls || ''); p.innerHTML = l.t || l; wordsEl.appendChild(p);
+      const l = lines[i], p = document.createElement('p'); p.className = 'line ' + (l.cls || ''); p.innerHTML = l.t || l; tidy(p); wordsEl.appendChild(p);
       if (i < lines.length - 1) await sleep(reduce ? 200 : (l.wait || gap));
     }
     await sleep(reduce ? 100 : 900); return tok === wordsToken;
@@ -304,7 +344,7 @@ function start(cfg) {
     });
   }
   const api = {
-    reduce, coarse, DPR, LOW, clamp, sleep, rng, mk, rgba,
+    reduce, coarse, DPR, LOW, tidy, clamp, sleep, rng, mk, rgba,
     get SW() { return SW; }, get SH() { return SH; }, get view() { return view; }, IMG, SRC,
     image: key => IMG[key] ? Promise.resolve(IMG[key]) : (lazyWait[key] || Promise.resolve(null)),
     addSource, xf, toImg, toScreen, drawView, paintTo, show, say, clearWords, hint, waitTap, setFog, fogCleared,

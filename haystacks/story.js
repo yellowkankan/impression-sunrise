@@ -47,7 +47,7 @@ async function scrub() {
   ribbon.classList.add('on');
   const setCap = i => {
     const h = HAY[i]; cap.innerHTML = `<div class="t">${h.t}</div><div class="m"><i>${h.fr}</i><br>${h.y} · ${h.where}</div><div class="n">${NOTES[h.f]}</div><div class="pal">${h.pal.map(p => `<span style="flex:${p[3]};background:rgb(${p[0]},${p[1]},${p[2]})"></span>`).join('')}</div>`;
-    cap.classList.add('on');
+    api.tidy(cap.querySelector('.n')); cap.classList.add('on');
   };
   const off = api.overlay((F, t) => {
     pos += (target - pos) * (api.reduce ? 1 : 0.12); if (Math.abs(target - pos) < 0.002) pos = target;

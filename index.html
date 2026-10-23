@@ -100,13 +100,26 @@ body{margin:0;background:var(--wall);color:var(--fog);font-family:var(--f-body);
 #arrowL{left:calc(var(--gut-l) - 6px)}#arrowR{right:calc(var(--gut-r) - 6px)}
 #arrowL:hover,#arrowR:hover{opacity:1;color:var(--fog)}
 #veil{position:fixed;inset:0;z-index:20;background:#111917;opacity:0;pointer-events:none;transition:opacity .5s}
-@media (min-width:900px) and (min-aspect-ratio:1/1){
+@media (min-width:600px) and (min-aspect-ratio:1/1){
   .item:not(.intro-item){flex-direction:row;align-items:flex-end;gap:clamp(22px,2.4vw,36px);margin-top:-4vh}
   .item .label{margin-top:0;width:clamp(260px,22vw,320px);margin-bottom:4px;transform:translateX(-8px)}
   .item.focus .label{transform:none}
 }
+@media (max-height:500px) and (min-aspect-ratio:1/1){
+  .intro{gap:8px;margin-top:0}
+  .intro h1{font-size:44px}
+  .intro .sub{font-size:17px}
+  .intro p{font-size:13.5px;line-height:1.7}
+  .item:not(.intro-item){margin-top:-2vh}
+  .label{padding:10px 14px 12px}
+  .label h2{font-size:19px}
+  .label p{font-size:12.5px;line-height:1.6;margin-top:3px}
+  .label .go{margin-top:6px;padding:7px 14px}
+  .dots{bottom:calc(env(safe-area-inset-bottom,0px) + 4px)}
+}
+@media (pointer:coarse){.dots button{width:36px;height:32px}}
 @media (max-width:700px){
-  .item{margin-top:-8vh}
+  .item{margin-top:-2vh}
   .label{padding:12px 14px 14px}
   .label h2{font-size:21px}
   .label p{font-size:13.5px}
@@ -135,6 +148,45 @@ const $ = s => document.querySelector(s);
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const coarse = matchMedia('(pointer: coarse)').matches;
 function rng(seed) { return () => { seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+
+/* 中文排版：只在词与词之间换行；人名、日期、时间、尺寸不拆开 */
+const tidy = (() => {
+  const SEG = typeof Intl !== 'undefined' && Intl.Segmenter ? new Intl.Segmenter('zh', { granularity: 'word' }) : null;
+  const KEEP = /(\d{4}\s*年(?:\s*\d{1,2}\s*月(?:\s*\d{1,2}\s*日)?)?|\d{1,2}\s*月\s*\d{1,2}\s*日|\d{1,2}\s*点(?:\s*\d{1,2}\s*分)?|\d+(?:\.\d+)?\s*×\s*\d+(?:\.\d+)?\s*(?:厘米)?|\d{4}\s*[–-]\s*\d{4}|\d+(?:\.\d+)?\s*(?:岁|幅|%|厘米|秒|笔|种|处|分钟|天|年|月)|[一-鿿]{1,6}[·-][一-鿿]{1,8}|《[^》]{1,14}》|“[^”]{1,8}”)/g;
+  const ZW = '​';
+  const TRAIL = new Set('的了着过们地得前里上下中边吗呢吧啊么后外内处似般样幅个位条种只张座家块片次'.split(''));
+  const CJK = s => /^[\u4e00-\u9fff]/.test(s), PUN = s => /^[，。、；：？！…）”]+$/.test(s);
+  // 断行规则：“的、了、前、里”这类字黏着前一个词；其他单字黏着后一个词；标点后可以断
+  function canBreak(a, b, c) {
+    if (PUN(a)) return CJK(b);
+    if (b.length === 1 && (!c || PUN(c) || !CJK(c))) return false;
+    if (!CJK(a) || !CJK(b)) return false;
+    if (b.length === 1 && TRAIL.has(b)) return false;
+    if (a.length === 1 && !TRAIL.has(a)) return false;
+    return true;
+  }
+  function words(t) {
+    if (!SEG) return t;
+    const seg = [...SEG.segment(t)].map(x => x.segment); let out = seg[0] || '';
+    for (let i = 1; i < seg.length; i++) out += (canBreak(seg[i - 1], seg[i], seg[i + 1]) ? ZW : '') + seg[i];
+    return out;
+  }
+  function fix(node) {
+    [...node.childNodes].forEach(n => {
+      if (n.nodeType === 1) { if (!n.classList.contains('nb')) fix(n); return; }
+      if (n.nodeType !== 3 || !n.nodeValue.trim()) return;
+      const frag = document.createDocumentFragment(), t = n.nodeValue; let last = 0, m; KEEP.lastIndex = 0;
+      while ((m = KEEP.exec(t))) {
+        if (m.index > last) frag.appendChild(document.createTextNode(words(t.slice(last, m.index)) + ZW));
+        const sp = document.createElement('span'); sp.className = 'nb'; sp.style.whiteSpace = 'nowrap'; sp.textContent = m[0]; frag.appendChild(sp);
+        frag.appendChild(document.createTextNode(ZW)); last = m.index + m[0].length;
+      }
+      if (last < t.length) frag.appendChild(document.createTextNode(words(t.slice(last))));
+      n.replaceWith(frag);
+    });
+  }
+  return el => { if (!el) return el; try { fix(el); el.style.wordBreak = 'keep-all'; el.style.overflowWrap = 'anywhere'; } catch (e) {} return el; };
+})();
 
 const WORKS = [
   { no: '01', title: '印象·日出', fr: 'Impression, soleil levant', year: '1872', size: '48 × 63 厘米', where: '巴黎 · 玛摩丹·莫奈美术馆', theme: '光的一瞬', ar: 63 / 48,
@@ -207,10 +259,17 @@ items.forEach((el, i) => {
   b.addEventListener('click', () => go(i)); dotsEl.appendChild(b);
 });
 
+document.querySelectorAll('.label p, .label .meta, .intro p, .intro .sub').forEach(tidy);
+
 /* ---------- 画框大小 ---------- */
 function sizeFrames() {
-  const vh = innerHeight, vw = innerWidth, wide = vw >= 900 && vw >= vh, base = Math.min(vh * (wide ? 0.6 : vw < 700 ? 0.36 : 0.44), 620);
-  items.slice(1).forEach(el => { const ar = +el.style.getPropertyValue('--ar'); el.querySelector('.frame').style.setProperty('--h', Math.min(base, vw * (wide ? 0.58 : 0.72) / ar) + 'px'); });
+  const vh = innerHeight, vw = innerWidth, wide = vw >= 600 && vw >= vh, base = Math.min(vh * (wide ? 0.6 : vw < 700 ? 0.36 : 0.44), 620);
+  items.slice(1).forEach(el => {
+    const ar = +el.style.getPropertyValue('--ar'), labelH = el.querySelector('.label').offsetHeight;
+    // 竖屏时展签在画下面：画框高度 = 屏幕高度 - 展签 - 上下留给标题和圆点的空间
+    const room = wide ? vh - 130 : vh - labelH - 150;
+    el.querySelector('.frame').style.setProperty('--h', Math.max(110, Math.min(base, room, vw * (wide ? 0.58 : 0.72) / ar)) + 'px');
+  });
 }
 
 /* ---------- 沿着展墙走 ---------- */
