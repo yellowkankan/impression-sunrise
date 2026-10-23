@@ -135,7 +135,8 @@ function start(cfg) {
     const base = v.fit ? contain * (portrait ? Math.min(1, v.fit + 0.1) : v.fit) : portrait ? contain : Math.min(cover, contain * 1.35), k = base * (v.z || 1);
     let X = (v.cx == null ? 0.5 : v.cx) * s.W, Y = (v.cy == null ? 0.5 : v.cy) * s.H; const hw = SW / 2 / k, hh = SH / 2 / k;
     X = s.W * k > SW ? clamp(X, hw, s.W - hw) : s.W / 2; Y = s.H * k > SH ? clamp(Y, hh, s.H - hh) : s.H / 2;
-    const oy = s.H * k < SH && portrait ? (SH - s.H * k) * (v.top == null ? 0.28 : v.top) : SH / 2 - Y * k;
+    let oy = s.H * k < SH && portrait ? (SH - s.H * k) * (v.top == null ? 0.28 : v.top) : SH / 2 - Y * k;
+    if (v.lift && !portrait && s.H * k < SH) oy = Math.max(0, oy - SH * v.lift);
     return { k, ox: SW / 2 - X * k, oy, s };
   }
   const toImg = (v, sx, sy) => { const t = xf(v); return [(sx - t.ox) / t.k, (sy - t.oy) / t.k]; };
@@ -274,7 +275,7 @@ function start(cfg) {
     const panel = $('#panel'); return new Promise(res => {
       panel.innerHTML = `<div class="q">${q}</div><div class="opts"></div>`; const box = panel.querySelector('.opts'); let wrong = 0;
       options.forEach((o, i) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = o;
-        b.onclick = () => { if (i === answer) { b.classList.add('right'); box.querySelectorAll('button').forEach(x => x.disabled = true); res(wrong); } else { b.classList.add('wrong'); b.disabled = true; wrong++; } };
+        b.onclick = () => { if (answer < 0) { box.querySelectorAll('button').forEach(x => x.disabled = true); res(i); return; } if (i === answer) { b.classList.add('right'); box.querySelectorAll('button').forEach(x => x.disabled = true); res(wrong); } else { b.classList.add('wrong'); b.disabled = true; wrong++; } };
         box.appendChild(b); });
       panel.classList.add('on');
     });

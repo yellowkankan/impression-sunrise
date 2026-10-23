@@ -153,3 +153,80 @@ body{background:var(--deep);color:var(--fog);font-family:var(--f-body);overflow:
 @media (pointer:coarse){#soundBtn,#nextBtn{padding:12px 14px}#brand{padding:12px 14px}}
 
 .line{text-wrap:pretty}
+
+/* 干草堆 · 抢光：三块等光的画布 */
+#easels{position:absolute;z-index:6;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 5vh);transform:translateX(-50%);display:flex;gap:clamp(8px,2vw,18px);width:min(620px,calc(100vw - 24px))}
+.easel{flex:1;min-width:0;display:grid;gap:6px;justify-items:center;padding:10px 8px 8px;cursor:pointer;font:inherit;color:var(--fog);
+  background:rgba(12,18,16,.72);border:2px solid rgba(239,234,224,.3);border-radius:6px 12px 6px 12px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  box-shadow:0 10px 24px -12px rgba(0,0,0,.8);transition:transform .15s,border-color .2s;-webkit-tap-highlight-color:transparent}
+.easel:active{transform:scale(.96)}
+.easel .pal{display:flex;width:100%;height:34px;border-radius:3px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)}
+.easel .pal i{display:block;height:100%}
+.easel b{font-family:var(--f-display);font-weight:400;font-size:clamp(14px,1.6vw,18px);letter-spacing:.06em;white-space:nowrap}
+.easel em{font-style:normal;font-size:12.5px;min-height:1.3em;color:var(--peach)}
+.easel.ok{border-color:#f3c98a;animation:pop .5s}
+.easel.bad{border-color:#d0573f;animation:shake .4s}
+@keyframes pop{40%{transform:scale(1.08)}}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+
+/* 干草堆 · 猜时间：拖动太阳 + 选季节 */
+#guess{position:absolute;z-index:6;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 3vh);transform:translateX(-50%);width:min(560px,calc(100vw - 24px));
+  display:grid;gap:10px;padding:12px 14px 14px;background:rgba(12,18,16,.74);border:1px solid rgba(239,234,224,.22);border-radius:8px 16px 8px 16px;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);opacity:0;pointer-events:none;transition:opacity .4s}
+#guess.on{opacity:1;pointer-events:auto}
+#guess .sky{position:relative;height:clamp(84px,13vh,120px);touch-action:none;cursor:ew-resize}
+#guess .arc{position:absolute;left:0;right:0;top:8%;bottom:14%;border:2px dashed rgba(239,234,224,.3);border-bottom:0;border-radius:50% 50% 0 0/100% 100% 0 0}
+#guess .sun{position:absolute;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;background:radial-gradient(circle,#fff1d6,#f4a85e 55%,rgba(244,168,94,0) 72%);box-shadow:0 0 22px rgba(244,168,94,.7)}
+#guess .sun:focus-visible{outline:2px solid var(--peach)}
+#guess .ans{position:absolute;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;border:3px solid #7fd1c0;opacity:0}
+#guess .ans.on{opacity:1}
+#guess .l,#guess .m,#guess .r{position:absolute;bottom:0;font-size:12px;color:var(--mist);letter-spacing:.1em}
+#guess .l{left:0}#guess .m{left:50%;transform:translateX(-50%)}#guess .r{right:0}
+#guess .time{position:absolute;right:0;top:0;font-family:var(--f-latin);font-size:22px;color:var(--fog)}
+#guess .seasons{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+#guess button{font:inherit;font-size:15px;color:var(--fog);background:rgba(239,234,224,.08);border:1px solid rgba(239,234,224,.3);padding:8px 16px;cursor:pointer;border-radius:14px 20px 12px 18px}
+#guess .seasons button.on{background:var(--peach);color:#111917;border-color:var(--peach)}
+#guess .go{justify-self:center;background:var(--sun);color:#111917;border-color:var(--sun);padding:10px 26px}
+#guess .go:disabled{opacity:.45;cursor:default}
+#guess button:focus-visible{outline:2px solid var(--peach);outline-offset:2px}
+@media (max-height:500px) and (min-aspect-ratio:1/1){#guess{left:auto;right:calc(var(--gut-r) + 8px);transform:none;width:min(360px,44vw);bottom:8px;gap:6px;padding:8px 10px}#guess .sky{height:64px}#easels{width:min(520px,70vw);bottom:6px}.easel .pal{height:20px}}
+
+/* 睡莲 · 拼图 */
+#puzzle{position:absolute;z-index:6;inset:0;display:grid;place-content:center;justify-items:center;gap:14px;pointer-events:none}
+#puzzle .board{position:relative;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(3,1fr);gap:3px;pointer-events:auto;touch-action:none;
+  box-shadow:0 30px 60px -20px rgba(0,0,0,.9)}
+#puzzle .board::after{content:"";position:absolute;inset:0;background:var(--img) center/100% 100%;opacity:0;transition:opacity .3s;pointer-events:none}
+#puzzle.peeking .board::after{opacity:1}
+#puzzle .cell{position:relative;background:rgba(239,234,224,.06);outline:1px solid rgba(239,234,224,.12);overflow:visible}
+#puzzle .cell.good{outline-color:rgba(240,184,156,.55)}
+#puzzle .piece{display:block;width:100%;height:100%;cursor:grab;transition:transform .35s cubic-bezier(.3,.7,.2,1),box-shadow .2s;position:relative;z-index:1}
+#puzzle .piece.flip{transform:rotate(180deg)}
+#puzzle .piece.lift{z-index:5;cursor:grabbing;transition:none;box-shadow:0 18px 30px rgba(0,0,0,.7);opacity:.92}
+#puzzle.done .board{gap:0;transition:gap .6s}
+#puzzle.done .cell{outline-color:transparent}
+#puzzle .bar{display:flex;gap:10px;pointer-events:auto}
+#puzzle .bar button,#swatches button{font:inherit;font-size:14.5px;color:var(--fog);background:rgba(12,18,16,.7);border:1px solid rgba(239,234,224,.3);padding:9px 16px;border-radius:14px 20px 12px 18px;cursor:pointer;-webkit-touch-callout:none;user-select:none}
+#puzzle .bar button:focus-visible{outline:2px solid var(--peach)}
+
+/* 睡莲 · 白内障调色 */
+#swatches{position:absolute;z-index:6;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 7vh);transform:translateX(-50%);width:min(560px,calc(100vw - 24px));
+  display:grid;gap:12px;justify-items:center;opacity:0;pointer-events:none;transition:opacity .4s}
+#swatches.on{opacity:1;pointer-events:auto}
+#swatches .q{font-family:var(--f-display);font-size:clamp(19px,2.2vw,24px);text-shadow:0 0 14px rgba(10,16,14,.95)}
+#swatches .q em{font-style:normal;color:var(--peach)}
+#swatches .q small{font-family:var(--f-body);font-size:13px;color:var(--mist)}
+#swatches .tubes{display:flex;gap:clamp(8px,2vw,16px);justify-content:center}
+#swatches .tubes button{display:grid;gap:6px;justify-items:center;padding:8px 8px 6px;border-radius:10px 16px 10px 16px}
+#swatches .tubes i{display:block;width:clamp(44px,9vw,62px);height:clamp(58px,12vw,82px);border-radius:6px 6px 14px 14px;box-shadow:inset 0 -8px 0 rgba(0,0,0,.18),0 6px 14px rgba(0,0,0,.5);transition:background .8s}
+#swatches .tubes span{font-size:12px;color:var(--mist)}
+#swatches .tubes button.picked{border-color:var(--fog)}
+#swatches .tubes button.ans{border-color:#7fd1c0;box-shadow:0 0 0 2px #7fd1c0}
+#swatches .tubes button.wrong{border-color:#d0573f;box-shadow:0 0 0 2px #d0573f}
+#swatches .tubes button:disabled{cursor:default}
+@media (max-height:500px) and (min-aspect-ratio:1/1){#swatches{bottom:6px;gap:6px}#swatches .tubes i{height:44px;width:40px}}
+
+/* 分数徽章：清楚的数字，深色底 */
+#clock{font-family:var(--f-body);font-size:24px;font-weight:600;line-height:1.2;padding:8px 14px;border-radius:10px 16px 10px 16px;
+  background:rgba(12,18,16,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);text-shadow:none;display:flex;align-items:baseline;gap:8px;font-variant-numeric:tabular-nums}
+#clock small{display:inline;margin:0;font-size:13px;font-weight:400;color:var(--mist);letter-spacing:.06em}
+@media (max-width:700px){#clock{right:auto;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 46px);font-size:20px;padding:6px 12px;white-space:nowrap}}
